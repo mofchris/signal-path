@@ -107,7 +107,79 @@ You are an operator guiding a maintenance drone through a damaged facility. Each
 
 ---
 
-## 4) Repository Structure
+## 4) Version Control Rules
+
+### Repository
+- **Remote**: https://github.com/mofchris/signal-path
+- **Branch**: `main` (single branch workflow for simplicity)
+
+### Commit Frequency
+- **Commit after every 2 completed steps** (at minimum)
+- Push to GitHub immediately after committing
+- Always verify tests pass before committing
+
+### Commit Workflow
+```bash
+# 1. Verify tests pass
+npm run test:ci
+
+# 2. Check what will be committed
+git status
+
+# 3. Stage all changes
+git add .
+
+# 4. Commit with descriptive message
+git commit -m "Steps X-Y: Brief description"
+
+# 5. Push to GitHub
+git push
+```
+
+### Commit Message Format
+```
+Steps X-Y: Brief description of changes
+
+- Bullet point of major change 1
+- Bullet point of major change 2
+```
+
+### Examples
+```
+Steps 5-6: Implement action system and game rules
+
+- Add validateAction, applyAction, getValidActions
+- Add turn resolution with win/lose conditions
+- 161 tests passing, 98% coverage
+```
+
+### What Gets Committed
+**Included:**
+- `src/` - All source code
+- `tests/` - All test files
+- `content/` - Level JSON files
+- `docs/` - Documentation
+- Config files (package.json, tsconfig.json, etc.)
+- `CLAUDE.md`, `README.md`, `PROJECT_STATUS.md`
+
+**Excluded (via .gitignore):**
+- `node_modules/` - Dependencies (reinstall with `npm install`)
+- `dist/` - Build output (regenerate with `npm run build`)
+- `coverage/` - Test coverage reports
+- `.env` - Environment variables (if any)
+
+### Recovery
+If someone clones the repo:
+```bash
+git clone https://github.com/mofchris/signal-path.git
+cd signal-path
+npm install
+npm run dev
+```
+
+---
+
+## 5) Repository Structure
 
 ```
 signal-path/
