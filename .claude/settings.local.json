@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:ci:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}
