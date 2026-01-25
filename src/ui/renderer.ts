@@ -198,7 +198,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
 
   // 8. Draw game over overlay if applicable
   if (state.status !== 'playing') {
-    renderGameOver(ctx, state.status, canvas.width, canvas.height);
+    renderGameOver(ctx, state.status, canvas.width, canvas.height, state);
   }
 }
 
@@ -633,7 +633,7 @@ function renderDoor(
 // ============================================================================
 
 /**
- * Render the heads-up display (energy, turns, status).
+ * Render the heads-up display (energy, turns, status, inventory).
  */
 function renderHUD(
   ctx: CanvasRenderingContext2D,
@@ -657,14 +657,14 @@ function renderHUD(
   // Energy display
   const energyColor = state.energy <= 3 ? COLORS.hudEnergyLow : COLORS.hudEnergy;
   ctx.fillStyle = energyColor;
-  ctx.font = 'bold 16px monospace';
-  ctx.fillText(`ENERGY: ${state.energy}`, GRID_PADDING, hudY + 25);
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText(`ENERGY: ${state.energy}/${state.maxEnergy}`, GRID_PADDING, hudY + 20);
 
   // Energy bar
-  const barWidth = 100;
-  const barHeight = 12;
+  const barWidth = 80;
+  const barHeight = 10;
   const barX = GRID_PADDING;
-  const barY = hudY + 35;
+  const barY = hudY + 28;
   const energyPercent = Math.max(0, state.energy / state.maxEnergy);
 
   // Bar background
@@ -680,16 +680,38 @@ function renderHUD(
   ctx.lineWidth = 1;
   ctx.strokeRect(barX, barY, barWidth, barHeight);
 
-  // Turn counter
+  // Turn counter (right side)
   ctx.fillStyle = COLORS.hudTurn;
-  ctx.font = 'bold 16px monospace';
-  ctx.fillText(`TURN: ${state.turnCount}`, canvasWidth - 100, hudY + 25);
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(`TURN: ${state.turnCount}`, canvasWidth - GRID_PADDING, hudY + 20);
 
-  // Level name (centered)
+  // Keys inventory (right side, below turn)
+  const keys = state.player.inventory.keys;
+  if (keys.length > 0) {
+    ctx.font = '12px monospace';
+    ctx.fillStyle = COLORS.hudText;
+    ctx.fillText('KEYS:', canvasWidth - GRID_PADDING, hudY + 38);
+
+    // Draw key icons
+    let keyX = canvasWidth - GRID_PADDING - 45;
+    for (const key of keys) {
+      const keyColor = getKeyColor(key.color);
+      ctx.fillStyle = keyColor;
+      ctx.beginPath();
+      ctx.arc(keyX, hudY + 45, 6, 0, Math.PI * 2);
+      ctx.fill();
+      keyX -= 16;
+    }
+  }
+
+  ctx.textAlign = 'left';
+
+  // Level ID (centered at bottom)
   ctx.fillStyle = COLORS.hudText;
-  ctx.font = '14px monospace';
+  ctx.font = '12px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(state.levelId, canvasWidth / 2, hudY + 40);
+  ctx.fillText(state.levelId.replace(/_/g, ' ').toUpperCase(), canvasWidth / 2, hudY + 50);
   ctx.textAlign = 'left';
 }
 
@@ -698,29 +720,57 @@ function renderHUD(
 // ============================================================================
 
 /**
- * Render the game over overlay.
+ * Render the game over overlay with detailed information.
  */
 function renderGameOver(
   ctx: CanvasRenderingContext2D,
   status: 'won' | 'lost',
   canvasWidth: number,
-  canvasHeight: number
+  canvasHeight: number,
+  state?: GameState
 ): void {
+  const gridHeight = canvasHeight - HUD_HEIGHT;
+  const centerX = canvasWidth / 2;
+  const centerY = gridHeight / 2;
+
   // Semi-transparent overlay
   ctx.fillStyle = status === 'won' ? COLORS.winOverlay : COLORS.loseOverlay;
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight - HUD_HEIGHT);
+  ctx.fillRect(0, 0, canvasWidth, gridHeight);
 
-  // Message
+  // Main message
   ctx.fillStyle = COLORS.overlayText;
   ctx.font = 'bold 32px monospace';
   ctx.textAlign = 'center';
 
   const message = status === 'won' ? 'LEVEL COMPLETE!' : 'MISSION FAILED';
-  ctx.fillText(message, canvasWidth / 2, canvasHeight / 2 - 20);
+  ctx.fillText(message, centerX, centerY - 40);
 
-  // Sub-message
-  ctx.font = '16px monospace';
-  ctx.fillText('Press R to restart', canvasWidth / 2, canvasHeight / 2 + 20);
+  // Stats (if state is provided)
+  if (state) {
+    ctx.font = '14px monospace';
+
+    if (status === 'won') {
+      ctx.fillText(`Turns: ${state.turnCount}`, centerX, centerY);
+      ctx.fillText(`Energy remaining: ${state.energy}`, centerX, centerY + 20);
+    } else {
+      // Show lose reason
+      const reason = state.energy <= 0 ? 'Energy depleted' : 'Hazard contact';
+      ctx.fillText(`Reason: ${reason}`, centerX, centerY);
+      ctx.fillText(`Turns taken: ${state.turnCount}`, centerX, centerY + 20);
+    }
+  }
+
+  // Instructions
+  ctx.font = 'bold 14px monospace';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+  if (status === 'won') {
+    ctx.fillText('Press N for next level', centerX, centerY + 55);
+    ctx.fillText('Press R to replay', centerX, centerY + 75);
+  } else {
+    ctx.fillText('Press R to restart', centerX, centerY + 55);
+    ctx.fillText('Press P for previous level', centerX, centerY + 75);
+  }
 
   ctx.textAlign = 'left';
 }

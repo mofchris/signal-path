@@ -7,5 +7,6 @@
   "playerStart": { "x": 0, "y": 0 },
   "goal": { "x": 4, "y": 4 },
   "energy": 12,
-  "description": "Welcome to Signal Path! Use arrow keys or WASD to move. Reach the green goal before your energy runs out."
+  "description": "Welcome to Signal Path! Use arrow keys or WASD to move. Reach the green goal before your energy runs out.",
+  "tiles": []
 }
