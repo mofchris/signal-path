@@ -188,21 +188,17 @@ function validateWait(state: GameState): ValidationResult {
  * Validate an undo action
  *
  * Undo reverts to the previous state.
- * This requires action history to be tracked.
+ * This requires state history to be tracked.
  *
  * An undo is valid if:
- * 1. Action history exists and has at least one entry
- *
- * Note: actionHistory is optional in GameState.
- * We'll implement full undo in Phase 2.
- * For now, always return invalid.
+ * 1. State history exists and has at least one entry
  *
  * @param state - Current game state
  * @returns Validation result
  */
 function validateUndo(state: GameState): ValidationResult {
-  // Check if we have action history
-  if (!state.actionHistory || state.actionHistory.length === 0) {
+  // Check if we have state history (previous states to restore)
+  if (!state.stateHistory || state.stateHistory.length === 0) {
     return { valid: false, reason: 'No actions to undo' };
   }
 
@@ -290,6 +286,9 @@ function applyMove(state: GameState, direction: Direction): GameState {
   const delta = DIRECTION_VECTORS[direction];
   const newPosition = addPositions(state.player.position, delta);
 
+  // Save current state to history before making changes (for undo)
+  const newHistory = [...(state.stateHistory || []), state];
+
   // Phase 2: Check for key collection
   // If there's a key at newPosition and it's not collected, collect it
   const collectedKeyIndex = state.interactables.findIndex(
@@ -359,6 +358,7 @@ function applyMove(state: GameState, direction: Direction): GameState {
     interactables: newInteractables,
     energy: state.energy - 1,
     turnCount: state.turnCount + 1,
+    stateHistory: newHistory, // Save history for undo
   };
 }
 
@@ -378,29 +378,35 @@ function applyMove(state: GameState, direction: Direction): GameState {
  * @returns New game state with updated energy/turn
  */
 function applyWait(state: GameState): GameState {
+  // Save current state to history before making changes (for undo)
+  const newHistory = [...(state.stateHistory || []), state];
+
   return {
     ...state,
     energy: state.energy - 1,
     turnCount: state.turnCount + 1,
+    stateHistory: newHistory, // Save history for undo
   };
 }
 
 /**
  * Apply an undo action
  *
- * This would revert to a previous state.
- * Requires full action history tracking.
- *
- * For now, this is a placeholder.
- * Full undo implementation comes in Phase 2.
+ * Reverts to the previous state by popping from state history.
+ * The returned state is a complete snapshot from before the last action.
  *
  * @param state - Current game state
  * @returns Previous game state (or current if no history)
  */
 function applyUndo(state: GameState): GameState {
-  // TODO (Phase 2): Implement full undo
-  // For now, just return current state
-  return state;
+  // If no history, return current state unchanged
+  if (!state.stateHistory || state.stateHistory.length === 0) {
+    return state;
+  }
+
+  // Return the last saved state (which already has its own history)
+  // This naturally handles multiple undos - each undo pops one state
+  return state.stateHistory[state.stateHistory.length - 1];
 }
 
 // ============================================================================

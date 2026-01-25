@@ -221,6 +221,9 @@ export interface GameState {
 
   /** History of actions (for undo) */
   actionHistory?: Action[];
+
+  /** History of previous states (for undo - stores full state snapshots) */
+  stateHistory?: GameState[];
 }
 
 // ============================================================================

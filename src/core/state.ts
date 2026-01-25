@@ -386,5 +386,6 @@ export function createGameState(levelData: LevelData): GameState {
     goal: { ...levelData.goal }, // Spread for immutability
     energy: levelData.energy,
     maxEnergy: levelData.energy, // Store max for UI display
+    stateHistory: [], // Initialize empty history for undo system
   };
 }

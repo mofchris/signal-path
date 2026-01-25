@@ -226,14 +226,44 @@ describe('Action Validation', () => {
      * Test: Undo with empty history
      * Should be invalid when history array is empty
      */
-    it('should reject undo with empty history', () => {
+    it('should reject undo with empty stateHistory', () => {
       const state = createGameState(testLevel);
-      const stateWithHistory = { ...state, actionHistory: [] };
+      const stateWithHistory = { ...state, stateHistory: [] };
 
       const action: Action = { type: 'undo' };
       const result = validateAction(stateWithHistory, action);
 
       expect(result.valid).toBe(false);
+    });
+
+    /**
+     * Test: Undo is valid after a move
+     * Should be valid when stateHistory has entries
+     */
+    it('should validate undo after a move', () => {
+      const state = createGameState(testLevel);
+      // Make a move to create history
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+
+      const action: Action = { type: 'undo' };
+      const result = validateAction(movedState, action);
+
+      expect(result.valid).toBe(true);
+    });
+
+    /**
+     * Test: Undo is valid after wait
+     * Should be valid when stateHistory has entries from wait
+     */
+    it('should validate undo after a wait', () => {
+      const state = createGameState(testLevel);
+      // Make a wait to create history
+      const waitedState = applyAction(state, { type: 'wait' });
+
+      const action: Action = { type: 'undo' };
+      const result = validateAction(waitedState, action);
+
+      expect(result.valid).toBe(true);
     });
   });
 });
@@ -370,6 +400,172 @@ describe('Action Application', () => {
 
       // Restart is handled by UI (reloads level), so core just returns state
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('applyAction - undo', () => {
+    /**
+     * Test: Undo restores previous position
+     * Player should return to position before last move
+     */
+    it('should restore previous position', () => {
+      const state = createGameState(testLevel);
+      const originalPosition = { ...state.player.position };
+
+      // Make a move
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+      expect(movedState.player.position).not.toEqual(originalPosition);
+
+      // Undo the move
+      const undoneState = applyAction(movedState, { type: 'undo' });
+      expect(undoneState.player.position).toEqual(originalPosition);
+    });
+
+    /**
+     * Test: Undo restores previous energy
+     * Energy should return to value before last action
+     */
+    it('should restore previous energy', () => {
+      const state = createGameState(testLevel);
+      const originalEnergy = state.energy;
+
+      // Make a move (costs energy)
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+      expect(movedState.energy).toBe(originalEnergy - 1);
+
+      // Undo the move
+      const undoneState = applyAction(movedState, { type: 'undo' });
+      expect(undoneState.energy).toBe(originalEnergy);
+    });
+
+    /**
+     * Test: Undo restores previous turn count
+     * Turn count should return to value before last action
+     */
+    it('should restore previous turn count', () => {
+      const state = createGameState(testLevel);
+      expect(state.turnCount).toBe(0);
+
+      // Make a move
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+      expect(movedState.turnCount).toBe(1);
+
+      // Undo the move
+      const undoneState = applyAction(movedState, { type: 'undo' });
+      expect(undoneState.turnCount).toBe(0);
+    });
+
+    /**
+     * Test: Multiple undos work correctly
+     * Should be able to undo multiple actions in sequence
+     */
+    it('should handle multiple undos', () => {
+      const state = createGameState(testLevel);
+
+      // Make two moves (right then right again to avoid wall at 1,1)
+      const state1 = applyAction(state, { type: 'move', direction: 'right' });
+      const state2 = applyAction(state1, { type: 'move', direction: 'right' });
+
+      expect(state2.player.position).toEqual({ x: 2, y: 0 });
+      expect(state2.turnCount).toBe(2);
+
+      // Undo first time - should go back to after first move
+      const undo1 = applyAction(state2, { type: 'undo' });
+      expect(undo1.player.position).toEqual({ x: 1, y: 0 });
+      expect(undo1.turnCount).toBe(1);
+
+      // Undo second time - should go back to start
+      const undo2 = applyAction(undo1, { type: 'undo' });
+      expect(undo2.player.position).toEqual({ x: 0, y: 0 });
+      expect(undo2.turnCount).toBe(0);
+    });
+
+    /**
+     * Test: Cannot undo past start
+     * Should return original state if no more history
+     */
+    it('should not undo past game start', () => {
+      const state = createGameState(testLevel);
+
+      // Make one move
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+
+      // Undo the move
+      const undoneState = applyAction(movedState, { type: 'undo' });
+
+      // Try to undo again - should be invalid and return same state
+      const action: Action = { type: 'undo' };
+      expect(validateAction(undoneState, action).valid).toBe(false);
+
+      const tryUndoAgain = applyAction(undoneState, action);
+      expect(tryUndoAgain).toBe(undoneState);
+    });
+
+    /**
+     * Test: Undo restores inventory after key collection
+     * Key should be removed from inventory and marked uncollected
+     */
+    it('should restore inventory after key collection', () => {
+      const levelWithKey: LevelData = {
+        ...testLevel,
+        interactables: [{ id: 'key1', x: 1, y: 0, type: 'key', color: 'red' }],
+      };
+
+      const state = createGameState(levelWithKey);
+      expect(state.player.inventory.keys).toHaveLength(0);
+
+      // Move to collect key
+      const collectedState = applyAction(state, { type: 'move', direction: 'right' });
+      expect(collectedState.player.inventory.keys).toHaveLength(1);
+
+      // Undo - key should be back
+      const undoneState = applyAction(collectedState, { type: 'undo' });
+      expect(undoneState.player.inventory.keys).toHaveLength(0);
+
+      // Key should no longer be marked as collected
+      const key = undoneState.interactables.find((i) => i.id === 'key1');
+      expect(key?.state.type).toBe('key');
+      if (key?.state.type === 'key') {
+        expect(key.state.collected).toBe(false);
+      }
+    });
+
+    /**
+     * Test: State history grows with each action
+     * History should contain snapshots of previous states
+     */
+    it('should build state history with each action', () => {
+      const state = createGameState(testLevel);
+      expect(state.stateHistory).toHaveLength(0);
+
+      const state1 = applyAction(state, { type: 'move', direction: 'right' });
+      expect(state1.stateHistory).toHaveLength(1);
+
+      // Move right again (not down which would hit wall at 1,1)
+      const state2 = applyAction(state1, { type: 'move', direction: 'right' });
+      expect(state2.stateHistory).toHaveLength(2);
+
+      const state3 = applyAction(state2, { type: 'wait' });
+      expect(state3.stateHistory).toHaveLength(3);
+    });
+
+    /**
+     * Test: Undo returns original state unchanged
+     * Should not create new properties or mutate
+     */
+    it('should return original state without undo action history', () => {
+      const state = createGameState(testLevel);
+
+      // Make a move
+      const movedState = applyAction(state, { type: 'move', direction: 'right' });
+
+      // Undo the move
+      const undoneState = applyAction(movedState, { type: 'undo' });
+
+      // The undone state should be structurally equal to original
+      expect(undoneState.player.position).toEqual(state.player.position);
+      expect(undoneState.energy).toBe(state.energy);
+      expect(undoneState.turnCount).toBe(state.turnCount);
     });
   });
 
