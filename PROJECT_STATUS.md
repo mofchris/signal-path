@@ -1,7 +1,7 @@
 # Signal Path - Project Status
 
-**Last Updated**: 2026-01-23
-**Current Phase**: Phase 1 - Foundation (Step 7 Complete)
+**Last Updated**: 2026-01-25
+**Current Phase**: Phase 1 - Foundation (Step 8 Complete)
 
 ---
 
@@ -434,27 +434,113 @@ npm run build      # ✅ Built in 545ms
 
 ---
 
-## 🎯 Next Steps: Step 8 - Input Handling (Refine)
+## ✅ Step 8: Input Handling - COMPLETE
 
-**Goal**: Improve input handling with validation feedback
+### What We Built
 
-**What to Improve:**
-- `src/ui/input.ts`:
-  - Separate input module
-  - Touch/mobile support
-  - Input queuing
-  - Visual feedback for invalid moves
+**File Created**: `src/ui/input.ts` (390+ lines)
+
+**InputHandler Class:**
+- ✅ `InputHandler` - Main class for managing all input
+- ✅ `attach()` / `detach()` - Add/remove event listeners
+- ✅ `handleKeyDown()` - Keyboard input processing
+- ✅ `handleTouchStart()` / `handleTouchEnd()` - Touch/swipe support
+- ✅ Input debouncing to prevent rapid-fire inputs
+
+**Keyboard Mapping:**
+- ✅ Arrow keys → Movement directions
+- ✅ WASD keys → Movement directions
+- ✅ Space → Wait action
+- ✅ R → Restart
+- ✅ U → Undo (placeholder)
+- ✅ N/P → Next/Previous level
+
+**Touch/Swipe Support:**
+- ✅ Swipe detection with configurable threshold (default 30px)
+- ✅ Swipe timeout (500ms max for valid swipe)
+- ✅ Tap detection (treat as wait action)
+- ✅ Directional swipe calculation (primary axis wins)
+
+**Visual Feedback System:**
+- ✅ `FeedbackState` - Animation state management
+- ✅ `createFeedbackState()` - Initialize feedback
+- ✅ `triggerFeedback()` - Start feedback animation
+- ✅ `updateFeedback()` - Update animation per frame
+- ✅ `getFeedbackProgress()` - Get animation progress (0-1)
+
+**File Updated**: `src/ui/renderer.ts`
+
+- ✅ `renderInvalidMoveFeedback()` - Red directional indicator
+- ✅ `renderMoveHints()` - Show valid move directions (optional)
+
+**File Updated**: `src/ui/main.ts`
+
+- ✅ Animation loop with `requestAnimationFrame`
+- ✅ Integrated InputHandler with callbacks
+- ✅ Feedback state management
+- ✅ Clean separation of input from game logic
+
+### Features
+
+**Input Debouncing:**
+- Configurable debounce time (default 80ms)
+- Prevents rapid-fire inputs from overwhelming the game
+
+**Mobile Support:**
+- Touch events with passive: false for scroll prevention
+- Swipe gesture recognition
+- Configurable swipe threshold
+
+**Callback Architecture:**
+- `onAction` - Called when valid action triggered
+- `onInvalidMove` - Called when invalid move attempted
+- `onNextLevel` / `onPrevLevel` - Level navigation callbacks
+
+### Controls
+
+| Input | Action |
+|-------|--------|
+| Arrow keys / WASD | Move in direction |
+| Space | Wait (skip turn) |
+| R | Restart level |
+| U | Undo (placeholder) |
+| N | Next level |
+| P | Previous level |
+| Swipe | Move in swipe direction |
+| Tap | Wait |
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+npm run test:ci    # ✅ 161/161 tests passing
+npm run build      # ✅ Built in 859ms
+```
+
+---
+
+## 🎯 Next Steps: Step 9 - Level Loading
+
+**Goal**: Load levels from external JSON files
+
+**What to Build:**
+- `src/content/loader.ts`:
+  - Load level JSON files dynamically
+  - Parse and validate level data
+  - Error handling for missing/invalid levels
+- Level selection from `content/levels/`
+- Remove hardcoded level data from main.ts
 
 **Success Criteria**:
-- Clean input separation
-- Mobile swipe support
-- Invalid move feedback
+- Levels load from JSON files
+- Invalid levels show clear error messages
+- Can add new levels without code changes
 
 ---
 
 ## 📊 Phase 1 Progress
 
-**Overall Progress**: 70% (7/10 steps complete)
+**Overall Progress**: 80% (8/10 steps complete)
 
 | Step | Description | Status |
 |------|-------------|--------|
@@ -465,8 +551,8 @@ npm run build      # ✅ Built in 545ms
 | 5 | State Management (Actions) | ✅ Complete |
 | 6 | Game Rules | ✅ Complete |
 | 7 | Basic Rendering | ✅ Complete |
-| 8 | Input Handling | ⏳ Next |
-| 9 | Level Loading | 📅 Planned |
+| 8 | Input Handling | ✅ Complete |
+| 9 | Level Loading | ⏳ Next |
 | 10 | Integration & Polish | 📅 Planned |
 
 ---
@@ -478,13 +564,14 @@ To play the game:
 1. **Start the dev server**: `npm run dev`
 2. **Open browser**: http://localhost:5173
 3. **Use arrow keys or WASD** to move
-4. **Press N** to cycle through test levels
+4. **Press N/P** to cycle through test levels
 5. **Press R** to restart
+6. **On mobile**: Swipe to move, tap to wait
 
-When ready for Step 8:
-- Create `src/ui/input.ts` for input handling
-- Add touch/swipe support
-- Add visual feedback for invalid moves
+When ready for Step 9:
+- Create `src/content/loader.ts` for level loading
+- Load levels from `content/levels/*.json`
+- Remove hardcoded levels from main.ts
 
 ---
 
@@ -501,4 +588,4 @@ Complete documentation available in `docs/`:
 
 ---
 
-**Status**: ✅ Step 5 complete! Action system working with 96.84% coverage. Ready for Step 6: Game Rules!
+**Status**: ✅ Step 8 complete! Input handling with keyboard, touch/swipe support, and visual feedback. Ready for Step 9: Level Loading!
