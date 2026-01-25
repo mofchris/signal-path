@@ -164,6 +164,14 @@ export function screenToGrid(screenPos: Position): Position {
 // ============================================================================
 
 /**
+ * Render options for customizing what gets rendered.
+ */
+export interface RenderOptions {
+  /** Skip player rendering (for handling animation separately) */
+  skipPlayer?: boolean;
+}
+
+/**
  * Render the complete game state to the canvas.
  *
  * This is the main entry point for rendering.
@@ -171,8 +179,13 @@ export function screenToGrid(screenPos: Position): Position {
  *
  * @param ctx - Canvas 2D rendering context
  * @param state - Current game state
+ * @param options - Optional render options
  */
-export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
+export function render(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  options?: RenderOptions
+): void {
   const canvas = ctx.canvas;
 
   // 1. Clear and draw background
@@ -190,8 +203,10 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   // 5. Draw hazards
   renderHazards(ctx, state.hazards);
 
-  // 6. Draw player
-  renderPlayer(ctx, state.player.position);
+  // 6. Draw player (unless skipped for animation)
+  if (!options?.skipPlayer) {
+    renderPlayer(ctx, state.player.position);
+  }
 
   // 7. Draw HUD
   renderHUD(ctx, state, canvas.width);
@@ -314,12 +329,38 @@ function renderGoal(ctx: CanvasRenderingContext2D, goal: Position): void {
 // ============================================================================
 
 /**
- * Render the player as a circle.
+ * Render the player as a circle at a grid position.
  */
 function renderPlayer(ctx: CanvasRenderingContext2D, position: Position): void {
   const screen = gridToScreen(position);
-  const centerX = screen.x + TILE_SIZE / 2;
-  const centerY = screen.y + TILE_SIZE / 2;
+  renderPlayerAtScreen(ctx, screen.x + TILE_SIZE / 2, screen.y + TILE_SIZE / 2);
+}
+
+/**
+ * Render the player at a visual position (supports fractional grid positions).
+ * Used during movement animation when player is between tiles.
+ *
+ * @param ctx - Canvas context
+ * @param visualPosition - Position in grid coordinates (can be fractional)
+ */
+export function renderPlayerAt(
+  ctx: CanvasRenderingContext2D,
+  visualPosition: Position
+): void {
+  // Convert fractional grid position to screen pixels
+  const screenX = visualPosition.x * TILE_SIZE + GRID_PADDING + TILE_SIZE / 2;
+  const screenY = visualPosition.y * TILE_SIZE + GRID_PADDING + TILE_SIZE / 2;
+  renderPlayerAtScreen(ctx, screenX, screenY);
+}
+
+/**
+ * Internal function to render player at screen coordinates.
+ */
+function renderPlayerAtScreen(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number
+): void {
   const radius = TILE_SIZE * 0.35;
 
   // Draw player circle

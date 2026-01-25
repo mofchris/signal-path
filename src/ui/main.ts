@@ -17,8 +17,15 @@
 import { createGameState } from '../core/state';
 import { applyAction, validateAction } from '../core/actions';
 import { resolveTurn } from '../core/rules';
-import { render, resizeCanvas, renderInvalidMoveFeedback } from './renderer';
+import { render, resizeCanvas, renderInvalidMoveFeedback, renderPlayerAt } from './renderer';
 import { InputHandler, createFeedbackState, triggerFeedback, updateFeedback, getFeedbackProgress } from './input';
+import {
+  createAnimationState,
+  startAnimation,
+  updateAnimation,
+  getVisualPosition,
+  isAnimating,
+} from './animation';
 import { loadAllLevels } from '../content/loader';
 import type { GameState, Action, LevelData, Direction } from '../core/types';
 
@@ -91,6 +98,7 @@ if (!ctx) {
 
 let gameState: GameState;
 let feedbackState = createFeedbackState();
+let animationState = createAnimationState();
 let animationFrameId: number | null = null;
 
 /**
@@ -99,6 +107,7 @@ let animationFrameId: number | null = null;
 function initGame(level: LevelData): void {
   gameState = createGameState(level);
   feedbackState = createFeedbackState();
+  animationState = createAnimationState();
   resizeCanvas(canvas, gameState.grid);
   renderGame();
   console.log(`Loaded level: ${level.name}`);
@@ -108,7 +117,16 @@ function initGame(level: LevelData): void {
  * Render the game with any active feedback animations.
  */
 function renderGame(): void {
-  render(ctx, gameState);
+  // If animating, render without player (we'll draw player separately)
+  if (isAnimating(animationState)) {
+    render(ctx, gameState, { skipPlayer: true });
+
+    // Get interpolated visual position and render player there
+    const visualPos = getVisualPosition(animationState, gameState.player.position);
+    renderPlayerAt(ctx, visualPos);
+  } else {
+    render(ctx, gameState);
+  }
 
   // Render invalid move feedback if active
   if (feedbackState.active && feedbackState.direction) {
@@ -123,18 +141,33 @@ function renderGame(): void {
 }
 
 /**
- * Animation loop for feedback effects.
+ * Animation loop for feedback and movement effects.
  */
 function animationLoop(): void {
+  let needsUpdate = false;
+
+  // Update feedback animation
   if (feedbackState.active) {
     feedbackState = updateFeedback(feedbackState);
-    renderGame();
+    needsUpdate = true;
+  }
 
-    if (feedbackState.active) {
-      animationFrameId = requestAnimationFrame(animationLoop);
-    } else {
-      animationFrameId = null;
-    }
+  // Update movement animation
+  if (isAnimating(animationState)) {
+    animationState = updateAnimation(animationState);
+    needsUpdate = true;
+  }
+
+  // Render if any animation is active
+  if (needsUpdate) {
+    renderGame();
+  }
+
+  // Continue loop if any animation is still active
+  if (feedbackState.active || isAnimating(animationState)) {
+    animationFrameId = requestAnimationFrame(animationLoop);
+  } else {
+    animationFrameId = null;
   }
 }
 
@@ -179,12 +212,28 @@ function handleAction(action: Action): void {
     return;
   }
 
+  // Capture position before move (for animation)
+  const fromPosition = { ...gameState.player.position };
+
   // Apply action and resolve turn
   const newState = applyAction(gameState, action);
 
   // If state changed, resolve turn and re-render
   if (newState !== gameState) {
-    gameState = resolveTurn(newState);
+    const resolvedState = resolveTurn(newState);
+    const toPosition = resolvedState.player.position;
+
+    // Start movement animation if position changed
+    if (action.type === 'move' && (fromPosition.x !== toPosition.x || fromPosition.y !== toPosition.y)) {
+      animationState = startAnimation(animationState, fromPosition, toPosition);
+
+      // Start animation loop if not already running
+      if (animationFrameId === null) {
+        animationFrameId = requestAnimationFrame(animationLoop);
+      }
+    }
+
+    gameState = resolvedState;
     renderGame();
 
     // Log state changes for debugging
