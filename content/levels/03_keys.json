@@ -1,0 +1,22 @@
+{
+  "id": "03_keys",
+  "name": "Lock and Key",
+  "version": "1.0.0",
+  "width": 5,
+  "height": 5,
+  "playerStart": { "x": 0, "y": 0 },
+  "goal": { "x": 4, "y": 4 },
+  "energy": 20,
+  "description": "Locked doors block your path. Find the matching key to unlock each door.",
+  "tiles": [
+    { "x": 2, "y": 1, "type": "wall" },
+    { "x": 2, "y": 2, "type": "wall" },
+    { "x": 2, "y": 3, "type": "wall" }
+  ],
+  "interactables": [
+    { "id": "key1", "x": 1, "y": 0, "type": "key", "color": "red" },
+    { "id": "door1", "x": 3, "y": 0, "type": "door", "color": "red" },
+    { "id": "key2", "x": 0, "y": 3, "type": "key", "color": "blue" },
+    { "id": "door2", "x": 4, "y": 3, "type": "door", "color": "blue" }
+  ]
+}

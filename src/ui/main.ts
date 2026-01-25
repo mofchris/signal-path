@@ -3,14 +3,14 @@
  *
  * This is the UI layer entry point for the game. It's responsible for:
  * - Setting up the canvas rendering context
- * - Loading level data
+ * - Loading level data from JSON files
  * - Creating initial game state
  * - Rendering the game
  * - Handling user input
  *
  * Architecture note:
  * - This file is part of the UI layer (src/ui/)
- * - UI layer imports from core (src/core/)
+ * - UI layer imports from core (src/core/) and content (src/content/)
  * - All game logic lives in core; UI handles presentation and input
  */
 
@@ -19,79 +19,20 @@ import { applyAction, validateAction } from '../core/actions';
 import { resolveTurn } from '../core/rules';
 import { render, resizeCanvas, renderInvalidMoveFeedback } from './renderer';
 import { InputHandler, createFeedbackState, triggerFeedback, updateFeedback, getFeedbackProgress } from './input';
+import { loadAllLevels } from '../content/loader';
 import type { GameState, Action, LevelData, Direction } from '../core/types';
 
 // ============================================================================
-// LEVEL DATA (Temporary - will be loaded from JSON in Step 9)
+// LEVEL MANAGEMENT
 // ============================================================================
 
 /**
- * First level data embedded for testing.
- * In Step 9, this will be loaded from content/levels/01_first_steps.json
+ * Loaded levels array.
+ * Populated at startup from JSON files.
  */
-const FIRST_LEVEL: LevelData = {
-  id: '01_first_steps',
-  name: 'First Steps',
-  version: '1.0.0',
-  width: 5,
-  height: 5,
-  playerStart: { x: 0, y: 0 },
-  goal: { x: 4, y: 4 },
-  energy: 12,
-  description: 'Welcome to Signal Path! Navigate the drone to the goal.',
-};
-
-/**
- * Second level with hazards for testing.
- */
-const HAZARD_LEVEL: LevelData = {
-  id: '02_hazards',
-  name: 'Hazard Warning',
-  version: '1.0.0',
-  width: 5,
-  height: 5,
-  playerStart: { x: 0, y: 0 },
-  goal: { x: 4, y: 4 },
-  energy: 15,
-  hazards: [
-    { id: 'spike1', x: 2, y: 0, type: 'spike' },
-    { id: 'spike2', x: 2, y: 1, type: 'spike' },
-    { id: 'laser1', x: 1, y: 2, type: 'laser' },
-    { id: 'fire1', x: 3, y: 3, type: 'fire' },
-  ],
-  tiles: [
-    { x: 2, y: 2, type: 'wall' },
-  ],
-};
-
-/**
- * Third level with keys and doors for testing.
- */
-const KEY_DOOR_LEVEL: LevelData = {
-  id: '03_keys',
-  name: 'Lock and Key',
-  version: '1.0.0',
-  width: 5,
-  height: 5,
-  playerStart: { x: 0, y: 0 },
-  goal: { x: 4, y: 4 },
-  energy: 20,
-  interactables: [
-    { id: 'key1', x: 1, y: 0, type: 'key', color: 'red' },
-    { id: 'door1', x: 3, y: 0, type: 'door', color: 'red' },
-    { id: 'key2', x: 0, y: 3, type: 'key', color: 'blue' },
-    { id: 'door2', x: 4, y: 3, type: 'door', color: 'blue' },
-  ],
-  tiles: [
-    { x: 2, y: 1, type: 'wall' },
-    { x: 2, y: 2, type: 'wall' },
-    { x: 2, y: 3, type: 'wall' },
-  ],
-};
-
-// Available levels for cycling
-const LEVELS = [FIRST_LEVEL, HAZARD_LEVEL, KEY_DOOR_LEVEL];
+let LEVELS: LevelData[] = [];
 let currentLevelIndex = 0;
+let levelsLoaded = false;
 
 // ============================================================================
 // INITIALIZATION
@@ -99,10 +40,35 @@ let currentLevelIndex = 0;
 
 console.log('Signal Path is loading...');
 
-// Hide the loading message
+// Get loading element for status updates
 const loadingEl = document.getElementById('loading');
-if (loadingEl) {
-  loadingEl.style.display = 'none';
+
+/**
+ * Update loading message.
+ */
+function setLoadingMessage(message: string): void {
+  if (loadingEl) {
+    loadingEl.textContent = message;
+  }
+}
+
+/**
+ * Hide the loading screen.
+ */
+function hideLoading(): void {
+  if (loadingEl) {
+    loadingEl.style.display = 'none';
+  }
+}
+
+/**
+ * Show loading error.
+ */
+function showLoadingError(message: string): void {
+  if (loadingEl) {
+    loadingEl.textContent = message;
+    loadingEl.style.color = '#ff6b6b';
+  }
 }
 
 // ============================================================================
@@ -188,6 +154,9 @@ function showInvalidMoveFeedback(direction: Direction): void {
  * Process a player action.
  */
 function handleAction(action: Action): void {
+  // Don't process actions if levels aren't loaded
+  if (!levelsLoaded || LEVELS.length === 0) return;
+
   // Don't process actions if game is over (except restart)
   if (gameState.status !== 'playing' && action.type !== 'restart') {
     return;
@@ -235,6 +204,7 @@ function handleAction(action: Action): void {
  * Switch to the next level.
  */
 function nextLevel(): void {
+  if (!levelsLoaded || LEVELS.length === 0) return;
   currentLevelIndex = (currentLevelIndex + 1) % LEVELS.length;
   initGame(LEVELS[currentLevelIndex]);
 }
@@ -243,6 +213,7 @@ function nextLevel(): void {
  * Switch to the previous level.
  */
 function prevLevel(): void {
+  if (!levelsLoaded || LEVELS.length === 0) return;
   currentLevelIndex = (currentLevelIndex - 1 + LEVELS.length) % LEVELS.length;
   initGame(LEVELS[currentLevelIndex]);
 }
@@ -267,10 +238,48 @@ inputHandler.attach(canvas);
 // START GAME
 // ============================================================================
 
-// Initialize with first level
-initGame(LEVELS[currentLevelIndex]);
+/**
+ * Load all levels and start the game.
+ */
+async function startGame(): Promise<void> {
+  setLoadingMessage('Loading levels...');
 
-console.log('Signal Path ready!');
-console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart');
-console.log('Level navigation: N = next level, P = previous level');
-console.log('Touch: Swipe to move, tap to wait');
+  try {
+    const result = await loadAllLevels();
+
+    if (result.levels.length === 0) {
+      showLoadingError('No levels found! Check content/levels/ directory.');
+      console.error('No levels loaded. Errors:', result.errors);
+      return;
+    }
+
+    // Store loaded levels
+    LEVELS = result.levels;
+    levelsLoaded = true;
+
+    // Log any loading errors (but continue with available levels)
+    if (result.errors.length > 0) {
+      console.warn('Some levels failed to load:', result.errors);
+    }
+
+    console.log(`Loaded ${LEVELS.length} levels:`, LEVELS.map((l) => l.id).join(', '));
+
+    // Hide loading screen and start
+    hideLoading();
+
+    // Initialize with first level
+    initGame(LEVELS[currentLevelIndex]);
+
+    console.log('Signal Path ready!');
+    console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart');
+    console.log('Level navigation: N = next level, P = previous level');
+    console.log('Touch: Swipe to move, tap to wait');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    showLoadingError(`Failed to start game: ${message}`);
+    console.error('Game startup error:', error);
+  }
+}
+
+// Start the game
+startGame();

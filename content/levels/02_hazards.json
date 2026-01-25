@@ -1,0 +1,20 @@
+{
+  "id": "02_hazards",
+  "name": "Hazard Warning",
+  "version": "1.0.0",
+  "width": 5,
+  "height": 5,
+  "playerStart": { "x": 0, "y": 0 },
+  "goal": { "x": 4, "y": 4 },
+  "energy": 15,
+  "description": "Watch out! Hazards will end your mission instantly. Find a safe path around them.",
+  "tiles": [
+    { "x": 2, "y": 2, "type": "wall" }
+  ],
+  "hazards": [
+    { "id": "spike1", "x": 2, "y": 0, "type": "spike" },
+    { "id": "spike2", "x": 2, "y": 1, "type": "spike" },
+    { "id": "laser1", "x": 1, "y": 2, "type": "laser" },
+    { "id": "fire1", "x": 3, "y": 3, "type": "fire" }
+  ]
+}
