@@ -26,8 +26,20 @@ import {
   getVisualPosition,
   isAnimating,
 } from './animation';
+import {
+  createSoundState,
+  initAudio,
+  toggleSound,
+  playMoveSound,
+  playInvalidSound,
+  playCollectSound,
+  playUnlockSound,
+  playWinSound,
+  playLoseSound,
+  playUndoSound,
+} from './sound';
 import { loadAllLevels } from '../content/loader';
-import type { GameState, Action, LevelData, Direction } from '../core/types';
+import type { GameState, Action, LevelData, Direction, Interactable } from '../core/types';
 
 // ============================================================================
 // LEVEL MANAGEMENT
@@ -99,6 +111,7 @@ if (!ctx) {
 let gameState: GameState;
 let feedbackState = createFeedbackState();
 let animationState = createAnimationState();
+let soundState = createSoundState();
 let animationFrameId: number | null = null;
 
 /**
@@ -184,11 +197,54 @@ function showInvalidMoveFeedback(direction: Direction): void {
 }
 
 /**
+ * Check if a key was collected by comparing interactables before/after.
+ */
+function wasKeyCollected(before: Interactable[], after: Interactable[]): boolean {
+  for (const interactable of before) {
+    if (interactable.state.type === 'key' && !interactable.state.collected) {
+      const afterItem = after.find((i) => i.id === interactable.id);
+      if (afterItem && afterItem.state.type === 'key' && afterItem.state.collected) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Check if a door was unlocked by comparing interactables before/after.
+ */
+function wasDoorUnlocked(before: Interactable[], after: Interactable[]): boolean {
+  for (const interactable of before) {
+    if (interactable.state.type === 'door' && interactable.state.locked) {
+      const afterItem = after.find((i) => i.id === interactable.id);
+      if (afterItem && afterItem.state.type === 'door' && !afterItem.state.locked) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Toggle sound on/off (called from input handler).
+ */
+function handleToggleSound(): void {
+  soundState = toggleSound(soundState);
+  console.log(`Sound: ${soundState.enabled ? 'ON' : 'OFF'}`);
+}
+
+/**
  * Process a player action.
  */
 function handleAction(action: Action): void {
   // Don't process actions if levels aren't loaded
   if (!levelsLoaded || LEVELS.length === 0) return;
+
+  // Initialize audio on first user interaction (browser policy)
+  if (!soundState.initialized) {
+    soundState = initAudio(soundState);
+  }
 
   // Don't process actions if game is over (except restart)
   if (gameState.status !== 'playing' && action.type !== 'restart') {
@@ -207,13 +263,15 @@ function handleAction(action: Action): void {
     // Show feedback for invalid moves
     if (action.type === 'move') {
       showInvalidMoveFeedback(action.direction);
+      playInvalidSound(soundState);
       console.log(`Invalid move: ${validation.reason}`);
     }
     return;
   }
 
-  // Capture position before move (for animation)
+  // Capture state before action (for comparisons and animation)
   const fromPosition = { ...gameState.player.position };
+  const beforeInteractables = gameState.interactables;
 
   // Apply action and resolve turn
   const newState = applyAction(gameState, action);
@@ -233,6 +291,23 @@ function handleAction(action: Action): void {
       }
     }
 
+    // Play sounds based on what happened
+    if (action.type === 'move') {
+      // Check for key collection or door unlock
+      const keyCollected = wasKeyCollected(beforeInteractables, resolvedState.interactables);
+      const doorUnlocked = wasDoorUnlocked(beforeInteractables, resolvedState.interactables);
+
+      if (keyCollected) {
+        playCollectSound(soundState);
+      } else if (doorUnlocked) {
+        playUnlockSound(soundState);
+      } else if (fromPosition.x !== toPosition.x || fromPosition.y !== toPosition.y) {
+        playMoveSound(soundState);
+      }
+    } else if (action.type === 'undo') {
+      playUndoSound(soundState);
+    }
+
     gameState = resolvedState;
     renderGame();
 
@@ -241,9 +316,12 @@ function handleAction(action: Action): void {
       `Turn ${gameState.turnCount}: Player at (${gameState.player.position.x}, ${gameState.player.position.y}), Energy: ${gameState.energy}`
     );
 
+    // Play win/lose sounds and log
     if (gameState.status === 'won') {
+      playWinSound(soundState);
       console.log('Level complete!');
     } else if (gameState.status === 'lost') {
+      playLoseSound(soundState);
       console.log('Game over!');
     }
   }
@@ -276,6 +354,7 @@ const inputHandler = new InputHandler({
   onInvalidMove: showInvalidMoveFeedback,
   onNextLevel: nextLevel,
   onPrevLevel: prevLevel,
+  onToggleSound: handleToggleSound,
   debounceTime: 80,
   swipeThreshold: 30,
 });
@@ -320,8 +399,9 @@ async function startGame(): Promise<void> {
     initGame(LEVELS[currentLevelIndex]);
 
     console.log('Signal Path ready!');
-    console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart');
+    console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart, U to undo');
     console.log('Level navigation: N = next level, P = previous level');
+    console.log('Sound: M = toggle sound on/off');
     console.log('Touch: Swipe to move, tap to wait');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

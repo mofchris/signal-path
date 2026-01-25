@@ -36,6 +36,11 @@ export type InvalidMoveCallback = (direction: Direction) => void;
 export type LevelCallback = () => void;
 
 /**
+ * Callback function type for simple toggle actions.
+ */
+export type ToggleCallback = () => void;
+
+/**
  * Input handler configuration.
  */
 export interface InputConfig {
@@ -43,6 +48,7 @@ export interface InputConfig {
   onInvalidMove?: InvalidMoveCallback;
   onNextLevel?: LevelCallback;
   onPrevLevel?: LevelCallback;
+  onToggleSound?: ToggleCallback;
   /** Minimum time between inputs in ms (default: 100) */
   debounceTime?: number;
   /** Minimum swipe distance in pixels (default: 30) */
@@ -122,6 +128,7 @@ export class InputHandler {
       onInvalidMove: config.onInvalidMove ?? (() => {}),
       onNextLevel: config.onNextLevel ?? (() => {}),
       onPrevLevel: config.onPrevLevel ?? (() => {}),
+      onToggleSound: config.onToggleSound ?? (() => {}),
       debounceTime: config.debounceTime ?? 100,
       swipeThreshold: config.swipeThreshold ?? 30,
     };
@@ -213,6 +220,13 @@ export class InputHandler {
     if (key === 'p') {
       event.preventDefault();
       this.config.onPrevLevel();
+      return;
+    }
+
+    // Sound toggle
+    if (key === 'm') {
+      event.preventDefault();
+      this.config.onToggleSound();
       return;
     }
   }

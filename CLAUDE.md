@@ -153,6 +153,11 @@ Steps 5-6: Implement action system and game rules
 - 161 tests passing, 98% coverage
 ```
 
+### Important: No AI Attribution
+- **Do NOT add "Co-Authored-By: Claude" or any AI attribution** to commit messages
+- This is a portfolio project and should appear as the developer's own work
+- Keep commit messages focused on what changed, not who/what wrote it
+
 ### What Gets Committed
 **Included:**
 - `src/` - All source code

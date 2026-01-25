@@ -647,7 +647,7 @@ Phase 1 (Foundation) is now complete. The game has:
 
 **Goal**: Add key game mechanics that make puzzles interesting
 
-**Current Status**: 195 tests passing, Steps 1-4 complete
+**Current Status**: 195 tests passing, Steps 1-5 complete
 
 ---
 
@@ -769,14 +769,73 @@ npm run build      # ✅ Built successfully
 
 ---
 
-## 📅 Step 5: Sound Effects - NOT STARTED
+## ✅ Step 5: Sound Effects - COMPLETE
 
-### What to Build
+### What We Built
 
-- [ ] Sound effect files (move, collect, open, hazard, win, lose)
-- [ ] Audio system (load, play, volume, mute)
-- [ ] Integration with game events
-- [ ] Mute toggle
+**File Created**: `src/ui/sound.ts` (200+ lines)
+
+**Sound State Management:**
+- ✅ `SoundState` interface - Tracks enabled, volume, AudioContext
+- ✅ `createSoundState()` - Initialize sound state
+- ✅ `toggleSound()` - Toggle sound on/off
+- ✅ `setVolume()` - Set master volume
+- ✅ `initAudio()` - Initialize AudioContext on user interaction
+
+**Sound Generators (Web Audio API):**
+- ✅ `playMoveSound()` - Quick ascending beep (150ms)
+- ✅ `playInvalidSound()` - Low dissonant buzz (200ms)
+- ✅ `playCollectSound()` - Rising arpeggio C-E-G-C (300ms)
+- ✅ `playUnlockSound()` - Mechanical click + descending tone (250ms)
+- ✅ `playWinSound()` - Ascending major chord fanfare (500ms)
+- ✅ `playLoseSound()` - Descending minor tones (400ms)
+- ✅ `playUndoSound()` - Quick descending blip
+
+**File Updated**: `src/ui/main.ts`
+- ✅ Sound state initialization
+- ✅ Audio init on first user interaction (browser policy)
+- ✅ Sound integration for all game events
+- ✅ Key/door state change detection for collect/unlock sounds
+
+**File Updated**: `src/ui/input.ts`
+- ✅ 'M' key binding for mute toggle
+- ✅ `onToggleSound` callback in InputConfig
+
+### Features
+
+**All sounds programmatically generated:**
+- No external audio files needed
+- Web Audio API oscillators (retro/arcade feel)
+- Demonstrates DSP/audio programming knowledge
+
+**Sound Events:**
+| Event | Sound |
+|-------|-------|
+| Move | Quick ascending beep |
+| Invalid move | Low dissonant buzz |
+| Key collected | Rising arpeggio (C-E-G-C) |
+| Door opened | Mechanical click + descending tone |
+| Win | Ascending major chord fanfare |
+| Lose | Descending minor tones |
+| Undo | Quick descending blip |
+
+**Controls:**
+- Press 'M' to toggle sound on/off
+- Default volume: 30%
+
+### Architecture Notes
+
+- Sound is UI-only (does not affect game state)
+- Maintains determinism (sounds are cosmetic)
+- AudioContext initialized on first user interaction (browser policy)
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS - No errors
+npm run test:ci    # ✅ 195/195 tests passing
+npm run build      # ✅ Built successfully
+```
 
 ---
 
@@ -798,7 +857,7 @@ npm run build      # ✅ Built successfully
 
 ## 📊 Phase 2 Progress
 
-**Overall Progress**: 67% (4/6 steps complete)
+**Overall Progress**: 83% (5/6 steps complete)
 
 | Step | Description | Status |
 |------|-------------|--------|
@@ -806,7 +865,7 @@ npm run build      # ✅ Built successfully
 | 2 | Undo System - Integration | ✅ Complete |
 | 3 | Movement Animation - Core System | ✅ Complete |
 | 4 | Movement Animation - Integration | ✅ Complete |
-| 5 | Sound Effects | 📅 Not Started |
+| 5 | Sound Effects | ✅ Complete |
 | 6 | Level Creation (5-10 levels) | 📅 Not Started |
 
 ---
@@ -861,4 +920,4 @@ Complete documentation available in `docs/`:
 
 ---
 
-**Status**: 🚧 PHASE 2 IN PROGRESS! Undo system and movement animations complete. 195 tests passing. Sound effects and level creation remaining.
+**Status**: 🚧 PHASE 2 IN PROGRESS! Undo system, movement animations, and sound effects complete. 195 tests passing. Level creation remaining.
