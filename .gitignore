@@ -28,3 +28,6 @@ Thumbs.db
 
 # Vitest
 .vitest/
+
+# Session context (local only)
+SESSION_CONTEXT.md
