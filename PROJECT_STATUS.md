@@ -1,7 +1,7 @@
 # Signal Path - Project Status
 
 **Last Updated**: 2026-01-25
-**Current Phase**: Phase 1 - Foundation (COMPLETE)
+**Current Phase**: Phase 2 - Core Mechanics (IN PROGRESS)
 
 ---
 
@@ -643,15 +643,171 @@ Phase 1 (Foundation) is now complete. The game has:
 
 ---
 
-## 🚀 Next: Phase 2 - Core Mechanics
+## 🚧 Phase 2 - Core Mechanics (IN PROGRESS)
 
 **Goal**: Add key game mechanics that make puzzles interesting
 
-**What to Build:**
-- Undo system (step backward through moves)
-- Movement animations (smooth transitions)
-- Sound effects
-- 5-10 designed levels with proper difficulty curve
+**Current Status**: 195 tests passing, Steps 1-4 complete
+
+---
+
+## ✅ Step 1: Undo System - State History - COMPLETE
+
+### What We Built
+
+**File Updated**: `src/core/types.ts`
+- ✅ Added `stateHistory?: GameState[]` to GameState interface
+- ✅ Optional array to store previous states for undo
+
+**File Updated**: `src/core/actions.ts`
+- ✅ `validateUndo()` - Checks if state history exists
+- ✅ `applyUndo()` - Returns previous state from history
+- ✅ Updated `applyMove()` to save state before changes
+- ✅ Updated `applyWait()` to save state before changes
+
+### How It Works
+
+Before each action, current state is pushed to `stateHistory`. Undo pops the last state from history. Each state is a complete snapshot enabling multiple undos.
+
+### Verification
+
+```bash
+npm run test:ci    # ✅ Tests passing
+npm run typecheck  # ✅ PASS
+```
+
+---
+
+## ✅ Step 2: Undo System - Integration - COMPLETE
+
+### What We Built
+
+**File Updated**: `src/core/actions.ts`
+- ✅ Added undo to `getValidActions()` queries
+- ✅ Undo only valid when history exists
+
+**File Updated**: `src/ui/input.ts`
+- ✅ 'U' key mapped to undo action
+
+**File Updated**: `src/ui/main.ts`
+- ✅ Undo action processing integrated
+
+### Features
+
+- Press 'U' to undo any move
+- Can undo multiple moves back to start
+- Preserves determinism (same sequence = same result)
+
+### Verification
+
+```bash
+npm run test:ci    # ✅ Tests passing
+npm run build      # ✅ Built successfully
+```
+
+---
+
+## ✅ Step 3: Movement Animation - Core System - COMPLETE
+
+### What We Built
+
+**File Created**: `src/ui/animation.ts` (173 lines)
+
+**Animation State:**
+- ✅ `AnimationState` interface - Tracks interpolation state
+- ✅ `createAnimationState()` - Initialize animation state
+- ✅ `startAnimation()` - Begin animation between positions
+- ✅ `updateAnimation()` - Update per frame
+- ✅ `getAnimationProgress()` - Get progress (0-1)
+- ✅ `getVisualPosition()` - Interpolated position for rendering
+- ✅ `isAnimating()` - Check if animation active
+
+**Animation Features:**
+- ✅ 150ms duration (snappy but smooth)
+- ✅ Ease-out quadratic easing (fast start, smooth end)
+- ✅ Linear interpolation (lerp) between positions
+
+### Architecture Note
+
+Animation is cosmetic only - does NOT affect game logic. Player's logical position updates immediately while visual position interpolates smoothly. This preserves determinism.
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+```
+
+---
+
+## ✅ Step 4: Movement Animation - Integration - COMPLETE
+
+### What We Built
+
+**File Updated**: `src/ui/renderer.ts`
+- ✅ `renderPlayerAt()` - Render player at arbitrary position
+- ✅ `skipPlayer` option to allow custom player position
+
+**File Updated**: `src/ui/main.ts`
+- ✅ Animation loop with `requestAnimationFrame`
+- ✅ Captures "from" position before applying move
+- ✅ Starts animation when position changes
+- ✅ Integrates with existing feedback system
+
+### Features
+
+- Smooth 150ms transitions between tiles
+- Eased movement (fast start, smooth stop)
+- No input lag (queuing works)
+- Animation doesn't affect game logic
+
+### Verification
+
+```bash
+npm run test:ci    # ✅ 195/195 tests passing
+npm run build      # ✅ Built successfully
+```
+
+---
+
+## 📅 Step 5: Sound Effects - NOT STARTED
+
+### What to Build
+
+- [ ] Sound effect files (move, collect, open, hazard, win, lose)
+- [ ] Audio system (load, play, volume, mute)
+- [ ] Integration with game events
+- [ ] Mute toggle
+
+---
+
+## 📅 Step 6: Level Creation - NOT STARTED
+
+### What to Build
+
+- [ ] Design 5-10 levels introducing mechanics
+- [ ] Tutorial levels (movement, energy)
+- [ ] Hazard levels (avoidance)
+- [ ] Key/door levels (exploration)
+- [ ] Challenge levels (tight energy)
+- [ ] Validate all levels
+- [ ] Balance energy budgets
+
+**Current Levels:** 3 (01_first_steps, 02_hazards, 03_keys)
+
+---
+
+## 📊 Phase 2 Progress
+
+**Overall Progress**: 67% (4/6 steps complete)
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 1 | Undo System - State History | ✅ Complete |
+| 2 | Undo System - Integration | ✅ Complete |
+| 3 | Movement Animation - Core System | ✅ Complete |
+| 4 | Movement Animation - Integration | ✅ Complete |
+| 5 | Sound Effects | 📅 Not Started |
+| 6 | Level Creation (5-10 levels) | 📅 Not Started |
 
 ---
 
@@ -705,4 +861,4 @@ Complete documentation available in `docs/`:
 
 ---
 
-**Status**: 🎉 PHASE 1 COMPLETE! All 10 steps done. 185 tests passing. Game is playable with 3 levels. Ready for Phase 2: Core Mechanics!
+**Status**: 🚧 PHASE 2 IN PROGRESS! Undo system and movement animations complete. 195 tests passing. Sound effects and level creation remaining.
