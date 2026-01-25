@@ -19,7 +19,8 @@
  * 7. Game over screen (if applicable)
  */
 
-import type { GameState, Grid, Tile, Position, Hazard, Interactable } from '../core/types';
+import type { GameState, Grid, Tile, Position, Hazard, Interactable, Direction } from '../core/types';
+import { DIRECTION_VECTORS } from '../core/types';
 
 // ============================================================================
 // CONSTANTS
@@ -76,6 +77,10 @@ export const COLORS = {
   keyYellow: '#eab308',
   doorLocked: '#78716c',
   doorUnlocked: '#a8a29e',
+
+  // Feedback
+  invalidMove: 'rgba(239, 68, 68, 0.6)',
+  validMoveHint: 'rgba(74, 222, 128, 0.2)',
 
   // HUD
   hudBackground: '#0f0f1a',
@@ -718,4 +723,79 @@ function renderGameOver(
   ctx.fillText('Press R to restart', canvasWidth / 2, canvasHeight / 2 + 20);
 
   ctx.textAlign = 'left';
+}
+
+// ============================================================================
+// INVALID MOVE FEEDBACK
+// ============================================================================
+
+/**
+ * Render invalid move feedback.
+ * Shows a red flash in the direction the player tried to move.
+ *
+ * @param ctx - Canvas context
+ * @param playerPos - Current player position
+ * @param direction - Direction of attempted move
+ * @param progress - Animation progress (0 to 1)
+ */
+export function renderInvalidMoveFeedback(
+  ctx: CanvasRenderingContext2D,
+  playerPos: Position,
+  direction: Direction,
+  progress: number
+): void {
+  const delta = DIRECTION_VECTORS[direction];
+  const targetPos = {
+    x: playerPos.x + delta.x,
+    y: playerPos.y + delta.y,
+  };
+
+  const screen = gridToScreen(targetPos);
+
+  // Fade out effect
+  const alpha = 0.6 * (1 - progress);
+
+  ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+  ctx.fillRect(screen.x, screen.y, TILE_SIZE, TILE_SIZE);
+
+  // Draw X mark
+  const centerX = screen.x + TILE_SIZE / 2;
+  const centerY = screen.y + TILE_SIZE / 2;
+  const size = TILE_SIZE * 0.25 * (1 - progress * 0.5);
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(centerX - size, centerY - size);
+  ctx.lineTo(centerX + size, centerY + size);
+  ctx.moveTo(centerX + size, centerY - size);
+  ctx.lineTo(centerX - size, centerY + size);
+  ctx.stroke();
+}
+
+/**
+ * Render valid move hints.
+ * Shows subtle highlights on tiles the player can move to.
+ *
+ * @param ctx - Canvas context
+ * @param playerPos - Current player position
+ * @param validDirections - Array of valid move directions
+ */
+export function renderMoveHints(
+  ctx: CanvasRenderingContext2D,
+  playerPos: Position,
+  validDirections: Direction[]
+): void {
+  for (const direction of validDirections) {
+    const delta = DIRECTION_VECTORS[direction];
+    const targetPos = {
+      x: playerPos.x + delta.x,
+      y: playerPos.y + delta.y,
+    };
+
+    const screen = gridToScreen(targetPos);
+
+    ctx.fillStyle = COLORS.validMoveHint;
+    ctx.fillRect(screen.x + 4, screen.y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+  }
 }

@@ -6,7 +6,7 @@
  * - Loading level data
  * - Creating initial game state
  * - Rendering the game
- * - Handling user input (Step 8)
+ * - Handling user input
  *
  * Architecture note:
  * - This file is part of the UI layer (src/ui/)
@@ -15,17 +15,18 @@
  */
 
 import { createGameState } from '../core/state';
-import { applyAction } from '../core/actions';
+import { applyAction, validateAction } from '../core/actions';
 import { resolveTurn } from '../core/rules';
-import { render, resizeCanvas } from './renderer';
-import type { GameState, Action, LevelData } from '../core/types';
+import { render, resizeCanvas, renderInvalidMoveFeedback } from './renderer';
+import { InputHandler, createFeedbackState, triggerFeedback, updateFeedback, getFeedbackProgress } from './input';
+import type { GameState, Action, LevelData, Direction } from '../core/types';
 
 // ============================================================================
 // LEVEL DATA (Temporary - will be loaded from JSON in Step 9)
 // ============================================================================
 
 /**
- * First level data embedded for Step 7 testing.
+ * First level data embedded for testing.
  * In Step 9, this will be loaded from content/levels/01_first_steps.json
  */
 const FIRST_LEVEL: LevelData = {
@@ -123,15 +124,64 @@ if (!ctx) {
 // ============================================================================
 
 let gameState: GameState;
+let feedbackState = createFeedbackState();
+let animationFrameId: number | null = null;
 
 /**
  * Initialize or restart the game with a level.
  */
 function initGame(level: LevelData): void {
   gameState = createGameState(level);
+  feedbackState = createFeedbackState();
   resizeCanvas(canvas, gameState.grid);
-  render(ctx, gameState);
+  renderGame();
   console.log(`Loaded level: ${level.name}`);
+}
+
+/**
+ * Render the game with any active feedback animations.
+ */
+function renderGame(): void {
+  render(ctx, gameState);
+
+  // Render invalid move feedback if active
+  if (feedbackState.active && feedbackState.direction) {
+    const progress = getFeedbackProgress(feedbackState);
+    renderInvalidMoveFeedback(
+      ctx,
+      gameState.player.position,
+      feedbackState.direction,
+      progress
+    );
+  }
+}
+
+/**
+ * Animation loop for feedback effects.
+ */
+function animationLoop(): void {
+  if (feedbackState.active) {
+    feedbackState = updateFeedback(feedbackState);
+    renderGame();
+
+    if (feedbackState.active) {
+      animationFrameId = requestAnimationFrame(animationLoop);
+    } else {
+      animationFrameId = null;
+    }
+  }
+}
+
+/**
+ * Start feedback animation.
+ */
+function showInvalidMoveFeedback(direction: Direction): void {
+  feedbackState = triggerFeedback(feedbackState, direction);
+
+  // Start animation loop if not already running
+  if (animationFrameId === null) {
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
 }
 
 /**
@@ -148,13 +198,25 @@ function handleAction(action: Action): void {
     return;
   }
 
+  // Validate the action first
+  const validation = validateAction(gameState, action);
+
+  if (!validation.valid) {
+    // Show feedback for invalid moves
+    if (action.type === 'move') {
+      showInvalidMoveFeedback(action.direction);
+      console.log(`Invalid move: ${validation.reason}`);
+    }
+    return;
+  }
+
   // Apply action and resolve turn
   const newState = applyAction(gameState, action);
 
   // If state changed, resolve turn and re-render
   if (newState !== gameState) {
     gameState = resolveTurn(newState);
-    render(ctx, gameState);
+    renderGame();
 
     // Log state changes for debugging
     console.log(
@@ -177,67 +239,29 @@ function nextLevel(): void {
   initGame(LEVELS[currentLevelIndex]);
 }
 
-// ============================================================================
-// INPUT HANDLING (Basic - Full implementation in Step 8)
-// ============================================================================
-
 /**
- * Handle keyboard input.
+ * Switch to the previous level.
  */
-function handleKeyDown(event: KeyboardEvent): void {
-  let action: Action | null = null;
-
-  switch (event.key.toLowerCase()) {
-    // Arrow keys
-    case 'arrowup':
-      action = { type: 'move', direction: 'up' };
-      break;
-    case 'arrowdown':
-      action = { type: 'move', direction: 'down' };
-      break;
-    case 'arrowleft':
-      action = { type: 'move', direction: 'left' };
-      break;
-    case 'arrowright':
-      action = { type: 'move', direction: 'right' };
-      break;
-
-    // WASD
-    case 'w':
-      action = { type: 'move', direction: 'up' };
-      break;
-    case 's':
-      action = { type: 'move', direction: 'down' };
-      break;
-    case 'a':
-      action = { type: 'move', direction: 'left' };
-      break;
-    case 'd':
-      action = { type: 'move', direction: 'right' };
-      break;
-
-    // Other actions
-    case ' ':
-      action = { type: 'wait' };
-      break;
-    case 'r':
-      action = { type: 'restart' };
-      break;
-
-    // Level switching (for testing)
-    case 'n':
-      nextLevel();
-      return;
-  }
-
-  if (action) {
-    event.preventDefault();
-    handleAction(action);
-  }
+function prevLevel(): void {
+  currentLevelIndex = (currentLevelIndex - 1 + LEVELS.length) % LEVELS.length;
+  initGame(LEVELS[currentLevelIndex]);
 }
 
-// Add keyboard listener
-document.addEventListener('keydown', handleKeyDown);
+// ============================================================================
+// INPUT HANDLING
+// ============================================================================
+
+const inputHandler = new InputHandler({
+  onAction: handleAction,
+  onInvalidMove: showInvalidMoveFeedback,
+  onNextLevel: nextLevel,
+  onPrevLevel: prevLevel,
+  debounceTime: 80,
+  swipeThreshold: 30,
+});
+
+// Attach input handlers to canvas (for touch) and document (for keyboard)
+inputHandler.attach(canvas);
 
 // ============================================================================
 // START GAME
@@ -247,4 +271,6 @@ document.addEventListener('keydown', handleKeyDown);
 initGame(LEVELS[currentLevelIndex]);
 
 console.log('Signal Path ready!');
-console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart, N for next level');
+console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart');
+console.log('Level navigation: N = next level, P = previous level');
+console.log('Touch: Swipe to move, tap to wait');
