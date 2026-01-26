@@ -1,0 +1,25 @@
+{
+  "id": "04_the_corridor",
+  "name": "The Corridor",
+  "version": "1.0.0",
+  "width": 7,
+  "height": 5,
+  "playerStart": { "x": 0, "y": 2 },
+  "goal": { "x": 6, "y": 2 },
+  "energy": 12,
+  "description": "Navigate through the narrow corridors. Walls force you to find the path.",
+  "tiles": [
+    { "x": 1, "y": 0, "type": "wall" },
+    { "x": 1, "y": 1, "type": "wall" },
+    { "x": 1, "y": 3, "type": "wall" },
+    { "x": 1, "y": 4, "type": "wall" },
+    { "x": 3, "y": 0, "type": "wall" },
+    { "x": 3, "y": 1, "type": "wall" },
+    { "x": 3, "y": 2, "type": "wall" },
+    { "x": 3, "y": 3, "type": "wall" },
+    { "x": 5, "y": 1, "type": "wall" },
+    { "x": 5, "y": 2, "type": "wall" },
+    { "x": 5, "y": 3, "type": "wall" },
+    { "x": 5, "y": 4, "type": "wall" }
+  ]
+}

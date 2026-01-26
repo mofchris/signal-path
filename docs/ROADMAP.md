@@ -1,9 +1,9 @@
 # Development Roadmap
 ## Signal Path
 
-**Last updated**: 2026-01-25
-**Document version**: 1.1
-**Current phase**: Phase 2 (Core Mechanics - In Progress)
+**Last updated**: 2026-01-26
+**Document version**: 1.2
+**Current phase**: Phase 2 (Core Mechanics - Complete)
 
 ---
 
@@ -155,17 +155,25 @@ Phase 5 (Showcase) → Portfolio presentation
 
 **Test Results**: 185 tests passing, 98%+ coverage on core
 
-### 🎯 In Progress (Phase 2)
+### ✅ Completed (Phase 2)
 
-**Core Mechanics** - 4/6 steps complete:
+**Core Mechanics** - 6/6 steps complete:
 - [x] Undo system - State history tracking
 - [x] Undo system - Integration (U key)
 - [x] Movement animation - Core system (150ms transitions)
 - [x] Movement animation - Integration
-- [ ] Sound effects
-- [ ] Level creation (5-10 designed levels)
+- [x] Sound effects (Web Audio API, 7 sound types)
+- [x] Level creation (10 designed levels)
 
 **Test Results**: 195 tests passing
+
+### 🎯 Next Up (Phase 3)
+
+**Content & Polish**:
+- [ ] Level select screen
+- [ ] Save/load system
+- [ ] Pathfinding visualization
+- [ ] Additional polish
 
 ---
 

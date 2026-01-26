@@ -1,0 +1,45 @@
+{
+  "id": "10_final_test",
+  "name": "Final Test",
+  "version": "1.0.0",
+  "width": 9,
+  "height": 7,
+  "playerStart": { "x": 0, "y": 3 },
+  "goal": { "x": 8, "y": 3 },
+  "energy": 35,
+  "description": "The ultimate challenge. All mechanics combined. Good luck, operator.",
+  "tiles": [
+    { "x": 2, "y": 0, "type": "wall" },
+    { "x": 2, "y": 1, "type": "wall" },
+    { "x": 2, "y": 2, "type": "wall" },
+    { "x": 2, "y": 4, "type": "wall" },
+    { "x": 2, "y": 5, "type": "wall" },
+    { "x": 2, "y": 6, "type": "wall" },
+    { "x": 5, "y": 0, "type": "wall" },
+    { "x": 5, "y": 1, "type": "wall" },
+    { "x": 5, "y": 5, "type": "wall" },
+    { "x": 5, "y": 6, "type": "wall" },
+    { "x": 7, "y": 1, "type": "wall" },
+    { "x": 7, "y": 2, "type": "wall" },
+    { "x": 7, "y": 4, "type": "wall" },
+    { "x": 7, "y": 5, "type": "wall" }
+  ],
+  "hazards": [
+    { "id": "spike1", "x": 1, "y": 1, "type": "spike" },
+    { "id": "spike2", "x": 1, "y": 5, "type": "spike" },
+    { "id": "laser1", "x": 4, "y": 2, "type": "laser" },
+    { "id": "laser2", "x": 4, "y": 4, "type": "laser" },
+    { "id": "fire1", "x": 6, "y": 0, "type": "fire" },
+    { "id": "fire2", "x": 6, "y": 6, "type": "fire" },
+    { "id": "spike3", "x": 8, "y": 1, "type": "spike" },
+    { "id": "spike4", "x": 8, "y": 5, "type": "spike" }
+  ],
+  "interactables": [
+    { "id": "key1", "x": 1, "y": 0, "type": "key", "color": "red" },
+    { "id": "door1", "x": 2, "y": 3, "type": "door", "color": "red" },
+    { "id": "key2", "x": 4, "y": 6, "type": "key", "color": "blue" },
+    { "id": "door2", "x": 5, "y": 3, "type": "door", "color": "blue" },
+    { "id": "key3", "x": 6, "y": 3, "type": "key", "color": "green" },
+    { "id": "door3", "x": 7, "y": 3, "type": "door", "color": "green" }
+  ]
+}

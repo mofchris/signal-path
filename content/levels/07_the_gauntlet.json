@@ -1,0 +1,33 @@
+{
+  "id": "07_the_gauntlet",
+  "name": "The Gauntlet",
+  "version": "1.0.0",
+  "width": 8,
+  "height": 5,
+  "playerStart": { "x": 0, "y": 2 },
+  "goal": { "x": 7, "y": 2 },
+  "energy": 14,
+  "description": "A corridor filled with hazards. Energy is tight - find the perfect path.",
+  "tiles": [
+    { "x": 0, "y": 0, "type": "wall" },
+    { "x": 0, "y": 1, "type": "wall" },
+    { "x": 0, "y": 3, "type": "wall" },
+    { "x": 0, "y": 4, "type": "wall" },
+    { "x": 7, "y": 0, "type": "wall" },
+    { "x": 7, "y": 1, "type": "wall" },
+    { "x": 7, "y": 3, "type": "wall" },
+    { "x": 7, "y": 4, "type": "wall" }
+  ],
+  "hazards": [
+    { "id": "spike1", "x": 2, "y": 1, "type": "spike" },
+    { "id": "spike2", "x": 2, "y": 2, "type": "spike" },
+    { "id": "spike3", "x": 2, "y": 3, "type": "spike" },
+    { "id": "laser1", "x": 4, "y": 0, "type": "laser" },
+    { "id": "laser2", "x": 4, "y": 1, "type": "laser" },
+    { "id": "laser3", "x": 4, "y": 3, "type": "laser" },
+    { "id": "laser4", "x": 4, "y": 4, "type": "laser" },
+    { "id": "fire1", "x": 6, "y": 1, "type": "fire" },
+    { "id": "fire2", "x": 6, "y": 2, "type": "fire" },
+    { "id": "fire3", "x": 6, "y": 3, "type": "fire" }
+  ]
+}

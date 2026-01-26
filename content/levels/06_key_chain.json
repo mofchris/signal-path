@@ -1,0 +1,25 @@
+{
+  "id": "06_key_chain",
+  "name": "Key Chain",
+  "version": "1.0.0",
+  "width": 7,
+  "height": 5,
+  "playerStart": { "x": 0, "y": 2 },
+  "goal": { "x": 6, "y": 2 },
+  "energy": 25,
+  "description": "Three doors block your path. Collect the keys in the right order.",
+  "tiles": [
+    { "x": 0, "y": 0, "type": "wall" },
+    { "x": 0, "y": 4, "type": "wall" },
+    { "x": 6, "y": 0, "type": "wall" },
+    { "x": 6, "y": 4, "type": "wall" }
+  ],
+  "interactables": [
+    { "id": "door1", "x": 2, "y": 2, "type": "door", "color": "red" },
+    { "id": "door2", "x": 4, "y": 2, "type": "door", "color": "blue" },
+    { "id": "door3", "x": 5, "y": 2, "type": "door", "color": "green" },
+    { "id": "key1", "x": 1, "y": 0, "type": "key", "color": "red" },
+    { "id": "key2", "x": 3, "y": 4, "type": "key", "color": "blue" },
+    { "id": "key3", "x": 3, "y": 0, "type": "key", "color": "green" }
+  ]
+}
