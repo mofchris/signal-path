@@ -81,6 +81,48 @@ const LEVEL_FILES: LevelInfo[] = [
     description: 'Collect keys to open locked doors.',
     filename: '03_keys.json',
   },
+  {
+    id: '04_the_corridor',
+    name: 'The Corridor',
+    description: 'Navigate through the narrow corridors.',
+    filename: '04_the_corridor.json',
+  },
+  {
+    id: '05_danger_zone',
+    name: 'Danger Zone',
+    description: 'Multiple paths exist, but hazards block the direct route.',
+    filename: '05_danger_zone.json',
+  },
+  {
+    id: '06_key_chain',
+    name: 'Key Chain',
+    description: 'Three doors block your path. Collect the keys in the right order.',
+    filename: '06_key_chain.json',
+  },
+  {
+    id: '07_the_gauntlet',
+    name: 'The Gauntlet',
+    description: 'A corridor filled with hazards. Energy is tight.',
+    filename: '07_the_gauntlet.json',
+  },
+  {
+    id: '08_locked_in',
+    name: 'Locked In',
+    description: 'Keys, doors, and hazards combine. Plan your route carefully.',
+    filename: '08_locked_in.json',
+  },
+  {
+    id: '09_efficiency',
+    name: 'Efficiency',
+    description: 'Energy is extremely limited. Only the optimal path will succeed.',
+    filename: '09_efficiency.json',
+  },
+  {
+    id: '10_final_test',
+    name: 'Final Test',
+    description: 'The ultimate challenge. All mechanics combined.',
+    filename: '10_final_test.json',
+  },
 ];
 
 // ============================================================================

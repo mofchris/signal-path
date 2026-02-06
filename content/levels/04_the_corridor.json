@@ -6,7 +6,7 @@
   "height": 5,
   "playerStart": { "x": 0, "y": 2 },
   "goal": { "x": 6, "y": 2 },
-  "energy": 12,
+  "energy": 16,
   "description": "Navigate through the narrow corridors. Walls force you to find the path.",
   "tiles": [
     { "x": 1, "y": 0, "type": "wall" },

@@ -1,57 +1,22 @@
 /**
  * Signal Path - Main Entry Point
  *
- * This is the UI layer entry point for the game. It's responsible for:
- * - Setting up the canvas rendering context
- * - Loading level data from JSON files
- * - Creating initial game state
- * - Rendering the game
- * - Handling user input
+ * Initializes the scene system and game loop.
+ * All game logic is delegated to scenes via the SceneManager.
  *
- * Architecture note:
- * - This file is part of the UI layer (src/ui/)
- * - UI layer imports from core (src/core/) and content (src/content/)
- * - All game logic lives in core; UI handles presentation and input
+ * Architecture:
+ * - Loads levels from JSON files
+ * - Creates SceneManager with all scenes registered
+ * - Runs a requestAnimationFrame game loop
+ * - Delegates input, update, and render to the active scene
  */
 
-import { createGameState } from '../core/state';
-import { applyAction, validateAction } from '../core/actions';
-import { resolveTurn } from '../core/rules';
-import { render, resizeCanvas, renderInvalidMoveFeedback, renderPlayerAt } from './renderer';
-import { InputHandler, createFeedbackState, triggerFeedback, updateFeedback, getFeedbackProgress } from './input';
-import {
-  createAnimationState,
-  startAnimation,
-  updateAnimation,
-  getVisualPosition,
-  isAnimating,
-} from './animation';
-import {
-  createSoundState,
-  initAudio,
-  toggleSound,
-  playMoveSound,
-  playInvalidSound,
-  playCollectSound,
-  playUnlockSound,
-  playWinSound,
-  playLoseSound,
-  playUndoSound,
-} from './sound';
 import { loadAllLevels } from '../content/loader';
-import type { GameState, Action, LevelData, Direction, Interactable } from '../core/types';
-
-// ============================================================================
-// LEVEL MANAGEMENT
-// ============================================================================
-
-/**
- * Loaded levels array.
- * Populated at startup from JSON files.
- */
-let LEVELS: LevelData[] = [];
-let currentLevelIndex = 0;
-let levelsLoaded = false;
+import { createSoundState } from './sound';
+import { SceneManager, MenuScene, GameScene, LevelSelectScene, GameOverScene } from './scenes';
+import type { SceneContext } from './scenes';
+import type { SoundState } from './sound';
+import type { LevelData } from '../core/types';
 
 // ============================================================================
 // INITIALIZATION
@@ -59,30 +24,20 @@ let levelsLoaded = false;
 
 console.log('Signal Path is loading...');
 
-// Get loading element for status updates
 const loadingEl = document.getElementById('loading');
 
-/**
- * Update loading message.
- */
 function setLoadingMessage(message: string): void {
   if (loadingEl) {
     loadingEl.textContent = message;
   }
 }
 
-/**
- * Hide the loading screen.
- */
 function hideLoading(): void {
   if (loadingEl) {
     loadingEl.style.display = 'none';
   }
 }
 
-/**
- * Show loading error.
- */
 function showLoadingError(message: string): void {
   if (loadingEl) {
     loadingEl.textContent = message;
@@ -105,270 +60,93 @@ if (!ctx) {
 }
 
 // ============================================================================
-// GAME STATE
+// SHARED STATE
 // ============================================================================
 
-let gameState: GameState;
-let feedbackState = createFeedbackState();
-let animationState = createAnimationState();
-let soundState = createSoundState();
-let animationFrameId: number | null = null;
+let soundState: SoundState = createSoundState();
 
-/**
- * Initialize or restart the game with a level.
- */
-function initGame(level: LevelData): void {
-  gameState = createGameState(level);
-  feedbackState = createFeedbackState();
-  animationState = createAnimationState();
-  resizeCanvas(canvas, gameState.grid);
-  renderGame();
-  console.log(`Loaded level: ${level.name}`);
-}
+// ============================================================================
+// SCENE SYSTEM SETUP
+// ============================================================================
 
-/**
- * Render the game with any active feedback animations.
- */
-function renderGame(): void {
-  // If animating, render without player (we'll draw player separately)
-  if (isAnimating(animationState)) {
-    render(ctx, gameState, { skipPlayer: true });
+const sceneManager = new SceneManager();
 
-    // Get interpolated visual position and render player there
-    const visualPos = getVisualPosition(animationState, gameState.player.position);
-    renderPlayerAt(ctx, visualPos);
-  } else {
-    render(ctx, gameState);
-  }
-
-  // Render invalid move feedback if active
-  if (feedbackState.active && feedbackState.direction) {
-    const progress = getFeedbackProgress(feedbackState);
-    renderInvalidMoveFeedback(
-      ctx,
-      gameState.player.position,
-      feedbackState.direction,
-      progress
-    );
-  }
-}
-
-/**
- * Animation loop for feedback and movement effects.
- */
-function animationLoop(): void {
-  let needsUpdate = false;
-
-  // Update feedback animation
-  if (feedbackState.active) {
-    feedbackState = updateFeedback(feedbackState);
-    needsUpdate = true;
-  }
-
-  // Update movement animation
-  if (isAnimating(animationState)) {
-    animationState = updateAnimation(animationState);
-    needsUpdate = true;
-  }
-
-  // Render if any animation is active
-  if (needsUpdate) {
-    renderGame();
-  }
-
-  // Continue loop if any animation is still active
-  if (feedbackState.active || isAnimating(animationState)) {
-    animationFrameId = requestAnimationFrame(animationLoop);
-  } else {
-    animationFrameId = null;
-  }
-}
-
-/**
- * Start feedback animation.
- */
-function showInvalidMoveFeedback(direction: Direction): void {
-  feedbackState = triggerFeedback(feedbackState, direction);
-
-  // Start animation loop if not already running
-  if (animationFrameId === null) {
-    animationFrameId = requestAnimationFrame(animationLoop);
-  }
-}
-
-/**
- * Check if a key was collected by comparing interactables before/after.
- */
-function wasKeyCollected(before: Interactable[], after: Interactable[]): boolean {
-  for (const interactable of before) {
-    if (interactable.state.type === 'key' && !interactable.state.collected) {
-      const afterItem = after.find((i) => i.id === interactable.id);
-      if (afterItem && afterItem.state.type === 'key' && afterItem.state.collected) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Check if a door was unlocked by comparing interactables before/after.
- */
-function wasDoorUnlocked(before: Interactable[], after: Interactable[]): boolean {
-  for (const interactable of before) {
-    if (interactable.state.type === 'door' && interactable.state.locked) {
-      const afterItem = after.find((i) => i.id === interactable.id);
-      if (afterItem && afterItem.state.type === 'door' && !afterItem.state.locked) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Toggle sound on/off (called from input handler).
- */
-function handleToggleSound(): void {
-  soundState = toggleSound(soundState);
-  console.log(`Sound: ${soundState.enabled ? 'ON' : 'OFF'}`);
-}
-
-/**
- * Process a player action.
- */
-function handleAction(action: Action): void {
-  // Don't process actions if levels aren't loaded
-  if (!levelsLoaded || LEVELS.length === 0) return;
-
-  // Initialize audio on first user interaction (browser policy)
-  if (!soundState.initialized) {
-    soundState = initAudio(soundState);
-  }
-
-  // Don't process actions if game is over (except restart)
-  if (gameState.status !== 'playing' && action.type !== 'restart') {
-    return;
-  }
-
-  if (action.type === 'restart') {
-    initGame(LEVELS[currentLevelIndex]);
-    return;
-  }
-
-  // Validate the action first
-  const validation = validateAction(gameState, action);
-
-  if (!validation.valid) {
-    // Show feedback for invalid moves
-    if (action.type === 'move') {
-      showInvalidMoveFeedback(action.direction);
-      playInvalidSound(soundState);
-      console.log(`Invalid move: ${validation.reason}`);
-    }
-    return;
-  }
-
-  // Capture state before action (for comparisons and animation)
-  const fromPosition = { ...gameState.player.position };
-  const beforeInteractables = gameState.interactables;
-
-  // Apply action and resolve turn
-  const newState = applyAction(gameState, action);
-
-  // If state changed, resolve turn and re-render
-  if (newState !== gameState) {
-    const resolvedState = resolveTurn(newState);
-    const toPosition = resolvedState.player.position;
-
-    // Start movement animation if position changed
-    if (action.type === 'move' && (fromPosition.x !== toPosition.x || fromPosition.y !== toPosition.y)) {
-      animationState = startAnimation(animationState, fromPosition, toPosition);
-
-      // Start animation loop if not already running
-      if (animationFrameId === null) {
-        animationFrameId = requestAnimationFrame(animationLoop);
-      }
-    }
-
-    // Play sounds based on what happened
-    if (action.type === 'move') {
-      // Check for key collection or door unlock
-      const keyCollected = wasKeyCollected(beforeInteractables, resolvedState.interactables);
-      const doorUnlocked = wasDoorUnlocked(beforeInteractables, resolvedState.interactables);
-
-      if (keyCollected) {
-        playCollectSound(soundState);
-      } else if (doorUnlocked) {
-        playUnlockSound(soundState);
-      } else if (fromPosition.x !== toPosition.x || fromPosition.y !== toPosition.y) {
-        playMoveSound(soundState);
-      }
-    } else if (action.type === 'undo') {
-      playUndoSound(soundState);
-    }
-
-    gameState = resolvedState;
-    renderGame();
-
-    // Log state changes for debugging
-    console.log(
-      `Turn ${gameState.turnCount}: Player at (${gameState.player.position.x}, ${gameState.player.position.y}), Energy: ${gameState.energy}`
-    );
-
-    // Play win/lose sounds and log
-    if (gameState.status === 'won') {
-      playWinSound(soundState);
-      console.log('Level complete!');
-    } else if (gameState.status === 'lost') {
-      playLoseSound(soundState);
-      console.log('Game over!');
-    }
-  }
-}
-
-/**
- * Switch to the next level.
- */
-function nextLevel(): void {
-  if (!levelsLoaded || LEVELS.length === 0) return;
-  currentLevelIndex = (currentLevelIndex + 1) % LEVELS.length;
-  initGame(LEVELS[currentLevelIndex]);
-}
-
-/**
- * Switch to the previous level.
- */
-function prevLevel(): void {
-  if (!levelsLoaded || LEVELS.length === 0) return;
-  currentLevelIndex = (currentLevelIndex - 1 + LEVELS.length) % LEVELS.length;
-  initGame(LEVELS[currentLevelIndex]);
-}
+// Register all scenes
+sceneManager.register('menu', new MenuScene());
+sceneManager.register('game', new GameScene());
+sceneManager.register('levelSelect', new LevelSelectScene());
+sceneManager.register('gameOver', new GameOverScene());
 
 // ============================================================================
 // INPUT HANDLING
 // ============================================================================
 
-const inputHandler = new InputHandler({
-  onAction: handleAction,
-  onInvalidMove: showInvalidMoveFeedback,
-  onNextLevel: nextLevel,
-  onPrevLevel: prevLevel,
-  onToggleSound: handleToggleSound,
-  debounceTime: 80,
-  swipeThreshold: 30,
+document.addEventListener('keydown', (event: KeyboardEvent) => {
+  const key = event.key.toLowerCase();
+  sceneManager.handleInput(key, event);
 });
 
-// Attach input handlers to canvas (for touch) and document (for keyboard)
-inputHandler.attach(canvas);
+// Touch support: swipe → direction key mapping
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+canvas.addEventListener('touchstart', (e: TouchEvent) => {
+  if (e.touches.length !== 1) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e: TouchEvent) => {
+  if (e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const elapsed = Date.now() - touchStartTime;
+
+  if (elapsed > 500) return;
+
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  const threshold = 30;
+
+  if (absDx < threshold && absDy < threshold) {
+    // Tap → treat as space
+    sceneManager.handleInput(' ', new KeyboardEvent('keydown', { key: ' ' }));
+    return;
+  }
+
+  e.preventDefault();
+
+  let key: string;
+  if (absDx > absDy) {
+    key = dx > 0 ? 'arrowright' : 'arrowleft';
+  } else {
+    key = dy > 0 ? 'arrowdown' : 'arrowup';
+  }
+
+  sceneManager.handleInput(key, new KeyboardEvent('keydown', { key }));
+}, { passive: false });
+
+// ============================================================================
+// GAME LOOP
+// ============================================================================
+
+let lastTime = 0;
+
+function gameLoop(time: number): void {
+  const dt = time - lastTime;
+  lastTime = time;
+
+  sceneManager.update(dt);
+
+  requestAnimationFrame(gameLoop);
+}
 
 // ============================================================================
 // START GAME
 // ============================================================================
 
-/**
- * Load all levels and start the game.
- */
 async function startGame(): Promise<void> {
   setLoadingMessage('Loading levels...');
 
@@ -381,28 +159,36 @@ async function startGame(): Promise<void> {
       return;
     }
 
-    // Store loaded levels
-    LEVELS = result.levels;
-    levelsLoaded = true;
+    const levels: LevelData[] = result.levels;
 
-    // Log any loading errors (but continue with available levels)
     if (result.errors.length > 0) {
       console.warn('Some levels failed to load:', result.errors);
     }
 
-    console.log(`Loaded ${LEVELS.length} levels:`, LEVELS.map((l) => l.id).join(', '));
+    console.log(`Loaded ${levels.length} levels:`, levels.map((l) => l.id).join(', '));
 
-    // Hide loading screen and start
+    // Create shared context
+    const context: SceneContext = {
+      sceneManager,
+      canvas,
+      ctx,
+      levels,
+      getSoundState: () => soundState,
+      setSoundState: (s: SoundState) => { soundState = s; },
+    };
+
+    sceneManager.setContext(context);
+
+    // Hide loading screen
     hideLoading();
 
-    // Initialize with first level
-    initGame(LEVELS[currentLevelIndex]);
+    // Start with menu scene
+    sceneManager.switchTo('menu');
+
+    // Start game loop
+    requestAnimationFrame(gameLoop);
 
     console.log('Signal Path ready!');
-    console.log('Controls: Arrow keys or WASD to move, SPACE to wait, R to restart, U to undo');
-    console.log('Level navigation: N = next level, P = previous level');
-    console.log('Sound: M = toggle sound on/off');
-    console.log('Touch: Swipe to move, tap to wait');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     showLoadingError(`Failed to start game: ${message}`);
@@ -410,5 +196,4 @@ async function startGame(): Promise<void> {
   }
 }
 
-// Start the game
 startGame();

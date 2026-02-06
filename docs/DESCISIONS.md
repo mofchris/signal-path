@@ -56,6 +56,9 @@ This document records **all significant architectural and technical decisions** 
 21. [ADR-021: No Animation Initially](#adr-021-no-animation-initially)
 22. [ADR-022: Keyboard-First Controls](#adr-022-keyboard-first-controls)
 
+### Phase 3 Decisions
+23. [ADR-023: Scene System for UI State Management](#adr-023-scene-system-for-ui-state-management)
+
 ---
 
 ## ADR Template
@@ -1514,6 +1517,67 @@ What should be the primary input method?
 
 ---
 
+## ADR-023: Scene System for UI State Management
+
+**Status**: Accepted
+**Date**: 2026-02-06
+**Deciders**: Project lead
+**Tags**: architecture, ui, scene-management
+
+### Context
+
+The main entry point (`src/ui/main.ts`) grew to ~414 lines handling everything: game loop, level loading, input, rendering, and state transitions. As we add more screens (menu, level select, game over), ad-hoc conditionals for switching between states become unmanageable. Level Select (3.2), Tutorial (3.5), and Save/Load (3.6) all depend on having a proper scene abstraction.
+
+**Options**:
+1. **Scene system**: Interface-based scenes with a manager
+2. **State machine**: Enum-based states with switch statements
+3. **Keep ad-hoc**: Continue with conditionals in main.ts
+
+### Decision
+
+Implement a **Scene System** with:
+- A `Scene` interface with lifecycle methods (`enter`, `exit`, `update`, `render`, `handleInput`)
+- A `SceneManager` that handles transitions and delegates to the active scene
+- Four concrete scenes: `MenuScene`, `GameScene`, `LevelSelectScene`, `GameOverScene`
+- Shared `SceneContext` for cross-cutting concerns (canvas, sound, levels)
+
+**Files**: `src/ui/scenes/types.ts`, `SceneManager.ts`, `GameScene.ts`, `MenuScene.ts`, `LevelSelectScene.ts`, `GameOverScene.ts`
+
+### Alternatives Considered
+
+#### State machine with enum
+- **Pros**: Simpler, less code
+- **Cons**: All logic still in one file, grows linearly with states
+- **Why rejected**: Doesn't scale as more screens are added
+
+#### Keep ad-hoc conditionals
+- **Pros**: No refactoring needed
+- **Cons**: main.ts becomes unmaintainable, can't add new screens easily
+- **Why rejected**: Already at the complexity limit
+
+### Consequences
+
+**Positive**:
+- Each screen is self-contained (own rendering, input, state)
+- Adding new screens requires only a new file + register call
+- main.ts reduced from ~414 to ~200 lines
+- Clean lifecycle (enter/exit prevents resource leaks)
+- Inter-scene communication via SceneManager data
+
+**Negative**:
+- More files (6 new files in scenes/)
+- Indirection (input flows through manager to scene)
+
+**Neutral**:
+- Common pattern in game development (familiar to reviewers)
+- Scenes render to same Canvas (no DOM complexity)
+
+### References
+- [TECH.md - Architecture Overview](TECH.md#architecture-overview)
+- [ROADMAP.md - Phase 3](ROADMAP.md)
+
+---
+
 ## Decision Summary Table
 
 | ADR | Decision | Status | Impact |
@@ -1540,6 +1604,7 @@ What should be the primary input method?
 | 020 | Canvas Rendering | Accepted | Medium |
 | 021 | No Animation Initially | Accepted | Low |
 | 022 | Keyboard-First Controls | Accepted | Low |
+| 023 | Scene System for UI State Management | Accepted | High |
 
 ---
 

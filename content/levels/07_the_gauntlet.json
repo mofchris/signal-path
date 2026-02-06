@@ -27,7 +27,6 @@
     { "id": "laser3", "x": 4, "y": 3, "type": "laser" },
     { "id": "laser4", "x": 4, "y": 4, "type": "laser" },
     { "id": "fire1", "x": 6, "y": 1, "type": "fire" },
-    { "id": "fire2", "x": 6, "y": 2, "type": "fire" },
     { "id": "fire3", "x": 6, "y": 3, "type": "fire" }
   ]
 }
