@@ -123,6 +123,66 @@ const LEVEL_FILES: LevelInfo[] = [
     description: 'The ultimate challenge. All mechanics combined.',
     filename: '10_final_test.json',
   },
+  {
+    id: '11_crossroads',
+    name: 'Crossroads',
+    description: 'Multiple paths branch from the center. Hazards block two routes.',
+    filename: '11_crossroads.json',
+  },
+  {
+    id: '12_the_vault',
+    name: 'The Vault',
+    description: 'Three locked chambers guard the keys you need.',
+    filename: '12_the_vault.json',
+  },
+  {
+    id: '13_minefield',
+    name: 'Minefield',
+    description: 'An open field scattered with hazards. Energy is tight.',
+    filename: '13_minefield.json',
+  },
+  {
+    id: '14_color_maze',
+    name: 'Color Maze',
+    description: 'Three color-coded locks block the exit. Collect keys in the right order.',
+    filename: '14_color_maze.json',
+  },
+  {
+    id: '15_dead_ends',
+    name: 'Dead Ends',
+    description: 'A maze of corridors hides punishing dead ends.',
+    filename: '15_dead_ends.json',
+  },
+  {
+    id: '16_firewall',
+    name: 'Firewall',
+    description: 'Horizontal barriers of fire and lasers block the way.',
+    filename: '16_firewall.json',
+  },
+  {
+    id: '17_one_shot',
+    name: 'One Shot',
+    description: 'Barely enough energy to survive. Only the optimal path works.',
+    filename: '17_one_shot.json',
+  },
+  {
+    id: '18_labyrinth',
+    name: 'Labyrinth',
+    description: 'A sprawling maze with locked doors and scattered hazards.',
+    filename: '18_labyrinth.json',
+  },
+  {
+    id: '19_gauntlet_ii',
+    name: 'Gauntlet II',
+    description: 'Three sections of hazard corridors. The sequel is harder.',
+    filename: '19_gauntlet_ii.json',
+  },
+  {
+    id: '20_signal_lost',
+    name: 'Signal Lost',
+    description: 'Final mission. Every hazard, every lock stands between you and the exit.',
+    filename: '20_signal_lost.json',
+  },
 ];
 
 // ============================================================================

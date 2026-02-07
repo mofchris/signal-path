@@ -1,0 +1,25 @@
+{
+  "id": "13_minefield",
+  "name": "Minefield",
+  "version": "1.0.0",
+  "width": 7,
+  "height": 7,
+  "playerStart": { "x": 0, "y": 0 },
+  "goal": { "x": 6, "y": 6 },
+  "energy": 16,
+  "description": "An open field scattered with hazards. Energy is tight — weave carefully.",
+  "tiles": [
+    { "x": 0, "y": 6, "type": "wall" },
+    { "x": 6, "y": 0, "type": "wall" }
+  ],
+  "hazards": [
+    { "id": "spike1", "x": 1, "y": 1, "type": "spike" },
+    { "id": "spike2", "x": 2, "y": 3, "type": "spike" },
+    { "id": "spike3", "x": 3, "y": 1, "type": "spike" },
+    { "id": "spike4", "x": 3, "y": 5, "type": "spike" },
+    { "id": "spike5", "x": 4, "y": 3, "type": "spike" },
+    { "id": "spike6", "x": 5, "y": 1, "type": "spike" },
+    { "id": "spike7", "x": 5, "y": 5, "type": "spike" },
+    { "id": "spike8", "x": 6, "y": 3, "type": "spike" }
+  ]
+}

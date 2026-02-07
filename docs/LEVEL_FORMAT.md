@@ -705,7 +705,7 @@ P . . . D . . . G    K = Red key (2, 0)
 - **Focus**: One mechanic at a time
 - **Complexity**: Minimal
 - **Energy**: 150–200% of optimal
-- **Grid size**: 5x5 to 8x8
+- **Grid size**: 5x5 to 6x6
 - **Mechanics introduced**:
   - Level 1: Movement, goal, energy
   - Level 2: Walls, simple obstacles
@@ -715,31 +715,43 @@ P . . . D . . . G    K = Red key (2, 0)
 - **Focus**: Introduce all core mechanics
 - **Complexity**: Low to medium
 - **Energy**: 130–150% of optimal
-- **Grid size**: 8x8 to 10x10
+- **Grid size**: 6x6 to 8x8
 - **New mechanics**:
   - Keys and doors
   - Multiple hazard types
   - Simple pathing puzzles
 
-#### Levels 7-12: Combination & Challenge
+#### Levels 7-10: Combination & Challenge
 - **Focus**: Combine multiple mechanics
 - **Complexity**: Medium
-- **Energy**: 120–130% of optimal
-- **Grid size**: 10x10 to 14x14
+- **Energy**: 120–140% of optimal
+- **Grid size**: 8x6 to 9x7
 - **Puzzles**:
   - Multi-key sequences
   - Hazard + obstacle combinations
   - Backtracking required
 
-#### Levels 13+: Mastery
+#### Levels 11-16: Advanced
+- **Focus**: Multi-path decisions and spatial reasoning
+- **Complexity**: Medium to high
+- **Energy**: 120–180% of optimal
+- **Grid size**: 7x7 to 10x8
+- **Challenges**:
+  - Multi-chamber vaults with 3 key-door pairs
+  - Open minefields with tight energy
+  - Dead-end mazes that punish exploration
+  - Hazard barrier walls with narrow gaps
+
+#### Levels 17-20: Mastery
 - **Focus**: Optimization and efficiency
 - **Complexity**: High
-- **Energy**: 110–120% of optimal
-- **Grid size**: 12x12 to 16x16
+- **Energy**: 110–130% of optimal
+- **Grid size**: 8x6 to 11x9
 - **Challenges**:
-  - Multiple solution paths
-  - Tight energy budgets
-  - Complex spatial reasoning
+  - Near-optimal path required (1-2 moves slack)
+  - Complex labyrinths with keys and hazards
+  - Multi-section hazard gauntlets
+  - Final boss combining all mechanics
 
 ### Design Best Practices
 
@@ -1101,6 +1113,19 @@ npm run validate-levels
    Warnings:
    - [DUPLICATE_ID] Hazard ID 'spike1' appears twice
 ```
+
+### BFS Solver Verification
+
+```bash
+# Run BFS solver on all levels to verify solvability
+npx tsx tools/verify-levels.ts
+
+# Output per level:
+# ✅ 01_first_steps — Solvable in 8 moves (energy: 12, margin: 4, ratio: 1.50x)
+# ❌ broken_level — UNSOLVABLE (no path found with key/door state tracking)
+```
+
+The verification tool uses BFS with bitmask-encoded key state to explore all reachable positions, accounting for key collection and door unlocking. It confirms every level is solvable within its energy budget and reports the optimal move count.
 
 ### In-Game Validation
 
