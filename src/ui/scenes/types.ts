@@ -12,6 +12,7 @@
  */
 
 import type { LevelData } from '../../core/types';
+import type { SaveData } from '../../core/serialization';
 import type { SoundState } from '../sound';
 import type { SceneManager } from './SceneManager';
 
@@ -71,6 +72,12 @@ export interface SceneContext {
 
   /** Update sound state */
   setSoundState: (state: SoundState) => void;
+
+  /** Get current save data */
+  getSaveData: () => SaveData;
+
+  /** Update and persist save data */
+  setSaveData: (data: SaveData) => void;
 }
 
 // ============================================================================

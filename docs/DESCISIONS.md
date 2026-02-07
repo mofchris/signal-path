@@ -58,6 +58,7 @@ This document records **all significant architectural and technical decisions** 
 
 ### Phase 3 Decisions
 23. [ADR-023: Scene System for UI State Management](#adr-023-scene-system-for-ui-state-management)
+24. [ADR-024: localStorage Save System with Progress-Only Persistence](#adr-024-localstorage-save-system-with-progress-only-persistence)
 
 ---
 
@@ -1578,6 +1579,73 @@ Implement a **Scene System** with:
 
 ---
 
+## ADR-024: localStorage Save System with Progress-Only Persistence
+
+**Status**: Accepted
+**Date**: 2026-02-07
+**Deciders**: Project lead
+**Tags**: persistence, architecture, save-system
+
+### Context
+
+The game had no persistence — closing the browser lost all progress. Players needed to replay completed levels and couldn't track their best scores. A save system was needed for Phase 3 to enable level locking/unlocking and progress badges.
+
+**Options**:
+1. **localStorage with progress-only saves**: Persist level completion and best scores, not mid-level state
+2. **Full state saves**: Serialize mid-level GameState for resume-anywhere
+3. **Server-side saves**: Backend persistence with user accounts
+4. **IndexedDB**: More structured browser storage
+
+### Decision
+
+Use **localStorage** to persist **progress-only** data (level completions, best turns, best energy, settings). No mid-level saves.
+
+**Architecture**:
+- `src/core/serialization.ts`: Pure types and functions (no browser APIs) — validates, serializes, queries progress
+- `src/ui/storage.ts`: Thin localStorage adapter (only file touching Storage API)
+- Version field in SaveData enables future migrations
+
+### Alternatives Considered
+
+#### Full mid-level state saves
+- **Pros**: Resume anywhere, better UX
+- **Cons**: GameState contains complex nested objects (Grid, Hazards, stateHistory); serialization is fragile; levels are short enough that restart is fine
+- **Why rejected**: Complexity outweighs benefit for puzzle levels that take < 2 minutes
+
+#### Server-side persistence
+- **Pros**: Cross-device sync, no storage limits
+- **Cons**: Requires backend, auth, hosting costs; this is a portfolio static site
+- **Why rejected**: Out of scope; localStorage is sufficient for single-device play
+
+#### IndexedDB
+- **Pros**: More storage, structured queries
+- **Cons**: Async API adds complexity; save data is < 1 KB
+- **Why rejected**: localStorage is simpler and sufficient
+
+### Consequences
+
+**Positive**:
+- Core serialization logic is pure and testable (47 unit tests)
+- Single adapter file isolates browser API (easy to swap)
+- Version migration scaffold ready for future schema changes
+- Level unlock system naturally falls out of progress tracking
+- Settings (sound preference) persist across sessions
+
+**Negative**:
+- No mid-level resume (players restart levels on refresh)
+- localStorage is per-origin, per-browser (no cross-device sync)
+- 5 MB storage limit (not a practical concern for progress data)
+
+**Neutral**:
+- try/catch in adapter handles private browsing gracefully
+- Pattern mirrors getSoundState/setSoundState in SceneContext
+
+### References
+- [TECH.md - Architecture Overview](TECH.md#architecture-overview)
+- [ROADMAP.md - Phase 3](ROADMAP.md)
+
+---
+
 ## Decision Summary Table
 
 | ADR | Decision | Status | Impact |
@@ -1605,6 +1673,7 @@ Implement a **Scene System** with:
 | 021 | No Animation Initially | Accepted | Low |
 | 022 | Keyboard-First Controls | Accepted | Low |
 | 023 | Scene System for UI State Management | Accepted | High |
+| 024 | localStorage Save System with Progress-Only Persistence | Accepted | High |
 
 ---
 

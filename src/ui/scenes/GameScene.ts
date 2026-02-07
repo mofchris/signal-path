@@ -34,6 +34,7 @@ import {
   playLoseSound,
   playUndoSound,
 } from '../sound';
+import { recordLevelCompletion, isLevelUnlocked } from '../../core/serialization';
 import type { Scene, SceneContext } from './types';
 import type { GameState, Action, Direction, Interactable, LevelData } from '../../core/types';
 import type { FeedbackState } from '../input';
@@ -106,7 +107,14 @@ export class GameScene implements Scene {
 
     // Sound toggle
     if (key === 'm') {
-      this.context.setSoundState(toggleSound(this.context.getSoundState()));
+      const newSoundState = toggleSound(this.context.getSoundState());
+      this.context.setSoundState(newSoundState);
+      // Persist sound preference
+      const save = this.context.getSaveData();
+      this.context.setSaveData({
+        ...save,
+        settings: { ...save.settings, soundEnabled: newSoundState.enabled },
+      });
       return;
     }
 
@@ -267,6 +275,16 @@ export class GameScene implements Scene {
       this.renderGame();
 
       if (this.gameState.status === 'won') {
+        // Persist completion progress
+        const levelId = this.context.levels[this.currentLevelIndex].id;
+        const updated = recordLevelCompletion(
+          this.context.getSaveData(),
+          levelId,
+          this.gameState.turnCount,
+          this.gameState.energy,
+        );
+        this.context.setSaveData(updated);
+
         playWinSound(soundState);
       } else if (this.gameState.status === 'lost') {
         playLoseSound(soundState);
@@ -275,11 +293,15 @@ export class GameScene implements Scene {
   }
 
   private nextLevel(): void {
-    if (this.currentLevelIndex < this.context.levels.length - 1) {
-      this.currentLevelIndex++;
-      this.context.sceneManager.setData('levelIndex', this.currentLevelIndex);
-      this.initGame(this.context.levels[this.currentLevelIndex]);
-    }
+    const nextIndex = this.currentLevelIndex + 1;
+    if (nextIndex >= this.context.levels.length) return;
+
+    const levelIds = this.context.levels.map((l) => l.id);
+    if (!isLevelUnlocked(this.context.getSaveData(), nextIndex, levelIds)) return;
+
+    this.currentLevelIndex = nextIndex;
+    this.context.sceneManager.setData('levelIndex', this.currentLevelIndex);
+    this.initGame(this.context.levels[this.currentLevelIndex]);
   }
 
   private prevLevel(): void {

@@ -7,6 +7,7 @@
  */
 
 import { COLORS } from '../renderer';
+import { isLevelUnlocked, getLevelProgress } from '../../core/serialization';
 import type { Scene, SceneContext } from './types';
 
 /** Menu option labels and their scene targets */
@@ -74,8 +75,22 @@ export class MenuScene implements Scene {
   private selectOption(): void {
     const option = MENU_OPTIONS[this.selectedIndex];
     if (option.key === 'game') {
-      // Start from first level (or last played)
-      this.context.sceneManager.setData('levelIndex', 0);
+      // Find first unlocked-but-not-completed level
+      const levels = this.context.levels;
+      const levelIds = levels.map((l) => l.id);
+      const saveData = this.context.getSaveData();
+      let startIndex = 0;
+      for (let i = 0; i < levels.length; i++) {
+        if (!isLevelUnlocked(saveData, i, levelIds)) break;
+        const progress = getLevelProgress(saveData, levels[i].id);
+        if (!progress.completed) {
+          startIndex = i;
+          break;
+        }
+        // If all completed, default to last level
+        startIndex = i;
+      }
+      this.context.sceneManager.setData('levelIndex', startIndex);
       this.context.sceneManager.switchTo('game');
     } else {
       this.context.sceneManager.switchTo(option.key);

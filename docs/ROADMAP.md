@@ -1,9 +1,9 @@
 # Development Roadmap
 ## Signal Path
 
-**Last updated**: 2026-01-26
-**Document version**: 1.2
-**Current phase**: Phase 2 (Core Mechanics - Complete)
+**Last updated**: 2026-02-07
+**Document version**: 1.3
+**Current phase**: Phase 3 (Content & Polish - In Progress)
 
 ---
 
@@ -95,8 +95,8 @@ Build a **portfolio-quality game** that demonstrates:
 ```
 Phase 0: Documentation        [COMPLETE]    0 weeks   (done)
 Phase 1: Foundation           [COMPLETE]    2-3 weeks (done)
-Phase 2: Core Mechanics       [IN PROGRESS] 2-3 weeks (4/6 steps done)
-Phase 3: Content & Polish     [PLANNED]     2-4 weeks
+Phase 2: Core Mechanics       [COMPLETE]    2-3 weeks (done)
+Phase 3: Content & Polish     [IN PROGRESS] 2-4 weeks (3.1, 3.6 done)
 Phase 4: Advanced Features    [OPTIONAL]    3-5 weeks
 Phase 5: Portfolio Showcase   [FINAL]       1-2 weeks
 ─────────────────────────────────────────────────────
@@ -167,13 +167,18 @@ Phase 5 (Showcase) → Portfolio presentation
 
 **Test Results**: 195 tests passing
 
-### 🎯 Next Up (Phase 3)
+### 🚧 In Progress (Phase 3)
 
 **Content & Polish**:
-- [ ] Level select screen
-- [ ] Save/load system
-- [ ] Pathfinding visualization
-- [ ] Additional polish
+- [x] Scene system (menu, game, level select, game over)
+- [x] Save/load system (localStorage, progress tracking, level locking)
+- [ ] Additional levels (20+ total)
+- [ ] Visual polish
+- [ ] Tutorial system
+- [ ] Mobile support improvements
+- [ ] Performance optimization
+
+**Test Results**: 242 tests passing
 
 ---
 
@@ -474,7 +479,7 @@ Phase 5 (Showcase) → Portfolio presentation
 
 ## Phase 2: Core Mechanics
 
-**Status**: 🚧 In Progress (4/6 steps complete)
+**Status**: ✅ Complete
 **Estimated duration**: 2-3 weeks
 **Goal**: Add key game mechanics that make puzzles interesting
 
@@ -619,13 +624,13 @@ Phase 5 (Showcase) → Portfolio presentation
 
 ## Phase 3: Content & Polish
 
-**Status**: 📅 Planned  
-**Estimated duration**: 2-4 weeks  
+**Status**: 🚧 In Progress
+**Estimated duration**: 2-4 weeks
 **Goal**: Complete content and polish for portfolio presentation
 
 ### Prerequisites
 
-- Phase 2 complete (all mechanics working)
+- Phase 2 complete (all mechanics working) ✅
 
 ### Objectives
 
@@ -639,33 +644,33 @@ Phase 5 (Showcase) → Portfolio presentation
 
 ### Tasks Breakdown
 
-#### 3.1: Scene System (8-10 hours)
-- [ ] Implement scene manager
-- [ ] Create MenuScene (title screen)
-- [ ] Create LevelSelectScene (choose level)
-- [ ] Create GameScene (playing)
-- [ ] Create GameOverScene (win/lose)
-- [ ] Scene transitions
+#### 3.1: Scene System (8-10 hours) ✅ COMPLETE
+- [x] Implement scene manager
+- [x] Create MenuScene (title screen)
+- [x] Create LevelSelectScene (choose level)
+- [x] Create GameScene (playing)
+- [x] Create GameOverScene (win/lose)
+- [x] Scene transitions
 
 **Acceptance criteria**:
-- Can navigate between scenes
-- Game state preserved across scenes
-- Scene transitions smooth
+- Can navigate between scenes ✅
+- Game state preserved across scenes ✅
+- Scene transitions smooth ✅
 
 ---
 
-#### 3.2: Level Select Screen (6-8 hours)
-- [ ] Design level select UI
-- [ ] Show level previews (thumbnail, name, difficulty)
-- [ ] Show completion status (completed, stars, best time)
-- [ ] Level unlocking (sequential)
-- [ ] Render level select
+#### 3.2: Level Select Screen (6-8 hours) ✅ COMPLETE (via 3.1 + 3.6)
+- [x] Design level select UI
+- [x] Show level name and number
+- [x] Show completion status (completed badge, X/N count)
+- [x] Level unlocking (sequential, based on save data)
+- [x] Locked levels dimmed with "LOCKED" label
 
 **Acceptance criteria**:
-- All levels visible
-- Can click to start level
-- Locked levels are grayed out
-- Shows which levels are completed
+- All levels visible ✅
+- Can select to start level ✅
+- Locked levels are grayed out and blocked ✅
+- Shows which levels are completed ✅
 
 ---
 
@@ -718,17 +723,20 @@ Phase 5 (Showcase) → Portfolio presentation
 
 ---
 
-#### 3.6: Save/Load System (8-10 hours)
-- [ ] Implement serialization (GameState → JSON)
-- [ ] LocalStorage integration
-- [ ] Save progress (level unlocks, completion)
-- [ ] Auto-save on level complete
-- [ ] Save best times/energy
+#### 3.6: Save/Load System (8-10 hours) ✅ COMPLETE
+- [x] Core serialization module (pure, no browser APIs)
+- [x] localStorage adapter with error handling
+- [x] Save progress on level completion (best turns, best energy)
+- [x] Auto-save on level win
+- [x] Level lock/unlock based on progress
+- [x] Sound preference persistence
+- [x] 47 unit tests for serialization logic
+- [x] Version migration scaffold
 
 **Acceptance criteria**:
-- Progress persists across sessions
-- Can clear save data
-- Serialization is robust (handles version changes)
+- Progress persists across sessions ✅
+- Can clear save data ✅
+- Serialization is robust (handles corrupt data, version changes) ✅
 
 ---
 

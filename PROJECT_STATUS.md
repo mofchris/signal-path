@@ -1,7 +1,7 @@
 # Signal Path - Project Status
 
-**Last Updated**: 2026-01-25
-**Current Phase**: Phase 2 - Core Mechanics (IN PROGRESS)
+**Last Updated**: 2026-02-07
+**Current Phase**: Phase 3 - Content & Polish (IN PROGRESS)
 
 ---
 
@@ -938,4 +938,121 @@ Complete documentation available in `docs/`:
 
 ---
 
-**Status**: 🎉 PHASE 2 COMPLETE! All core mechanics implemented: undo system, movement animations, sound effects, and 10 levels. 195 tests passing. Ready for Phase 3 (Polish).
+---
+
+## 🚧 Phase 3 - Content & Polish (IN PROGRESS)
+
+**Goal**: Complete content and polish for portfolio presentation
+
+**Current Status**: 242 tests passing
+
+---
+
+## ✅ Step 3.1: Scene System - COMPLETE
+
+### What We Built
+
+**Files Created**: `src/ui/scenes/types.ts`, `SceneManager.ts`, `GameScene.ts`, `MenuScene.ts`, `LevelSelectScene.ts`, `GameOverScene.ts`, `index.ts`
+
+**Scene System:**
+- ✅ `Scene` interface with lifecycle methods (enter, exit, update, render, handleInput)
+- ✅ `SceneManager` for transitions and context management
+- ✅ `SceneContext` for shared resources (canvas, levels, sound, save data)
+- ✅ Four scenes: Menu, Game, LevelSelect, GameOver
+
+**File Updated**: `src/ui/main.ts`
+- ✅ Reduced from ~414 to ~200 lines
+- ✅ Scene registration and context wiring
+- ✅ Touch/swipe support preserved
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+npm run test:ci    # ✅ 195/195 tests passing
+npm run build      # ✅ Built successfully
+```
+
+---
+
+## ✅ Step 3.5: Save/Load System - COMPLETE
+
+### What We Built
+
+**File Created**: `src/core/serialization.ts` (165 lines)
+
+**Types & Functions:**
+- ✅ `SaveData`, `LevelProgress`, `SaveSettings` types
+- ✅ `createDefaultSaveData()` — fresh state factory
+- ✅ `serializeSaveData()` / `deserializeSaveData()` — JSON round-trip with validation
+- ✅ `validateSaveData()` — type guard for unknown values
+- ✅ `migrateSaveData()` — version migration scaffold
+- ✅ `isLevelUnlocked()` — sequential unlock logic
+- ✅ `getLevelProgress()` — per-level progress query
+- ✅ `recordLevelCompletion()` — immutable update with best score tracking
+- ✅ `getCompletedCount()` — completed level counter
+
+**File Created**: `src/ui/storage.ts` (52 lines)
+
+**localStorage Adapter:**
+- ✅ `loadSaveData()` — reads localStorage, falls back to defaults
+- ✅ `persistSaveData()` — writes to localStorage
+- ✅ `clearSaveData()` — removes from localStorage
+- ✅ All ops wrapped in try/catch (handles private browsing)
+
+**File Created**: `tests/core/serialization.test.ts` (241 lines)
+
+**47 unit tests covering:**
+- Default save data creation
+- JSON round-trip serialization
+- Invalid JSON / wrong shape rejection
+- Validation accepts/rejects various shapes
+- Level unlock logic (sequential)
+- Record completion (first time, improved, no regression)
+- Immutability (original unchanged)
+- Completed count
+
+**Files Modified:**
+- ✅ `src/ui/scenes/types.ts` — Added `getSaveData`/`setSaveData` to SceneContext
+- ✅ `src/ui/main.ts` — Loads save data, wires into context, restores sound pref
+- ✅ `src/ui/scenes/GameScene.ts` — Saves progress on win, persists sound toggle
+- ✅ `src/ui/scenes/LevelSelectScene.ts` — Lock/unlock display, completion badges, blocked locked levels
+- ✅ `src/ui/scenes/MenuScene.ts` — "Start Game" resumes at first incomplete level
+- ✅ `docs/DESCISIONS.md` — Added ADR-024 (localStorage save system)
+
+### Architecture
+
+- **Core/UI separation maintained**: `serialization.ts` has zero browser dependencies
+- **Immutable updates**: `recordLevelCompletion()` returns new SaveData
+- **Sequential unlock**: Level N requires completing level N-1
+- **Version migration scaffold**: Ready for future schema changes
+- **Pattern**: Mirrors `getSoundState`/`setSoundState` in SceneContext
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+npm run test:ci    # ✅ 242/242 tests passing
+npm run build      # ✅ Built successfully (33.74 kB)
+```
+
+---
+
+## 📊 Phase 3 Progress
+
+**Overall Progress**: 2 steps complete, more to go
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 3.1 | Scene System | ✅ Complete |
+| 3.2 | Level Select Screen | ✅ Complete (via 3.1 + 3.6) |
+| 3.3 | Additional Levels | ⏳ Not started |
+| 3.4 | Visual Polish | ⏳ Not started |
+| 3.5 | Tutorial System | ⏳ Not started |
+| 3.6 | Save/Load System | ✅ Complete |
+| 3.7 | Mobile Support | ⏳ Not started |
+| 3.8 | Performance Optimization | ⏳ Not started |
+
+---
+
+**Status**: Phase 3 in progress. Scene system and save/load system complete. 242 tests passing. Level select shows lock/unlock state, completion badges, and X/N completed count.

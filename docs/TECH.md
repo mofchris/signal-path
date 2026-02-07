@@ -1034,67 +1034,88 @@ function validateLevel(level: LevelData): ValidationResult {
 
 ## Serialization (Save/Load)
 
-### Save Format
+### Architecture
+
+The save system is split into two layers:
+
+1. **`src/core/serialization.ts`** — Pure types and functions (no browser APIs)
+2. **`src/ui/storage.ts`** — Thin localStorage adapter (only file touching Storage API)
+
+This preserves the core/UI separation: serialization logic is testable in Node.js.
+
+### Save Data Format
 
 ```typescript
+interface LevelProgress {
+  completed: boolean;
+  bestTurns: number | null;     // Fewest turns (lower is better)
+  bestEnergy: number | null;    // Most energy remaining (higher is better)
+}
+
+interface SaveSettings {
+  soundEnabled: boolean;
+}
+
 interface SaveData {
-  version: string;                    // Save format version (for migrations)
-  timestamp: number;                  // When saved
-  currentLevel: string;               // Current level ID
-  unlockedLevels: string[];           // List of unlocked level IDs
-  gameState?: GameState;              // Current game state (if mid-level)
-}
-
-function serializeState(state: GameState): string {
-  const saveData: SaveData = {
-    version: '1.0',
-    timestamp: Date.now(),
-    currentLevel: state.levelId,
-    unlockedLevels: getUnlockedLevels(), // From global progress
-    gameState: state,
-  };
-  
-  return JSON.stringify(saveData);
-}
-
-function deserializeState(json: string): GameState {
-  const saveData = JSON.parse(json) as SaveData;
-  
-  // Version migration (if needed)
-  if (saveData.version !== '1.0') {
-    throw new Error('Unsupported save version');
-  }
-  
-  if (!saveData.gameState) {
-    throw new Error('No game state in save data');
-  }
-  
-  return saveData.gameState;
+  version: number;                          // Schema version (currently 1)
+  timestamp: string;                        // ISO timestamp of last save
+  levelProgress: Record<string, LevelProgress>;  // Keyed by level ID
+  settings: SaveSettings;
 }
 ```
 
-### LocalStorage Integration
+### Progress-Only Saves
+
+The system persists level completion and best scores, NOT mid-level state. Levels are short enough that restarting on refresh is acceptable. This avoids serializing complex nested GameState objects (Grid, stateHistory, etc.).
+
+### Core Functions (`src/core/serialization.ts`)
 
 ```typescript
-const SAVE_KEY = 'signal-path-save';
+// Factory
+createDefaultSaveData(): SaveData
 
-function saveGame(state: GameState): void {
-  const serialized = serializeState(state);
-  localStorage.setItem(SAVE_KEY, serialized);
-}
+// Serialization
+serializeSaveData(data: SaveData): string
+deserializeSaveData(json: string): SaveData | null  // null on invalid
 
-function loadGame(): GameState | null {
-  const serialized = localStorage.getItem(SAVE_KEY);
-  if (!serialized) return null;
-  
-  try {
-    return deserializeState(serialized);
-  } catch (error) {
-    console.error('Failed to load save:', error);
-    return null;
-  }
-}
+// Validation
+validateSaveData(value: unknown): value is SaveData
+
+// Migration
+migrateSaveData(data: SaveData): SaveData  // Scaffold for future versions
+
+// Progress Queries
+isLevelUnlocked(saveData, levelIndex, levelIds): boolean
+getLevelProgress(saveData, levelId): LevelProgress
+recordLevelCompletion(saveData, levelId, turns, energy): SaveData  // Immutable
+getCompletedCount(saveData): number
 ```
+
+### LocalStorage Adapter (`src/ui/storage.ts`)
+
+```typescript
+const STORAGE_KEY = 'signal-path-save';
+
+loadSaveData(): SaveData        // Falls back to defaults on missing/corrupt
+persistSaveData(data): void     // Writes to localStorage
+clearSaveData(): void           // Removes from localStorage
+```
+
+All operations wrapped in try/catch for private browsing / quota exceeded.
+
+### Level Unlock Logic
+
+- Level 0 is always unlocked
+- Level N is unlocked when level N-1 is completed
+- `isLevelUnlocked()` checks the previous level's completion in saveData
+
+### Integration Points
+
+- **SceneContext** exposes `getSaveData()` / `setSaveData()` (mirrors sound state pattern)
+- **main.ts** loads save data on startup, restores sound preference
+- **GameScene** calls `recordLevelCompletion()` on win, persists sound toggle
+- **LevelSelectScene** uses `isLevelUnlocked()` / `getLevelProgress()` for display
+- **MenuScene** finds first incomplete level for "Start Game"
 
 ---
 

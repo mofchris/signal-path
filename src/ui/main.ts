@@ -13,9 +13,11 @@
 
 import { loadAllLevels } from '../content/loader';
 import { createSoundState } from './sound';
+import { loadSaveData, persistSaveData } from './storage';
 import { SceneManager, MenuScene, GameScene, LevelSelectScene, GameOverScene } from './scenes';
 import type { SceneContext } from './scenes';
 import type { SoundState } from './sound';
+import type { SaveData } from '../core/serialization';
 import type { LevelData } from '../core/types';
 
 // ============================================================================
@@ -64,6 +66,10 @@ if (!ctx) {
 // ============================================================================
 
 let soundState: SoundState = createSoundState();
+let saveData: SaveData = loadSaveData();
+
+// Restore sound preference from save data
+soundState.enabled = saveData.settings.soundEnabled;
 
 // ============================================================================
 // SCENE SYSTEM SETUP
@@ -175,6 +181,8 @@ async function startGame(): Promise<void> {
       levels,
       getSoundState: () => soundState,
       setSoundState: (s: SoundState) => { soundState = s; },
+      getSaveData: () => saveData,
+      setSaveData: (s: SaveData) => { saveData = s; persistSaveData(s); },
     };
 
     sceneManager.setContext(context);
