@@ -1,8 +1,8 @@
 # Development Roadmap
 ## Signal Path
 
-**Last updated**: 2026-02-07
-**Document version**: 1.3
+**Last updated**: 2026-02-08
+**Document version**: 1.4
 **Current phase**: Phase 3 (Content & Polish - In Progress)
 
 ---
@@ -96,7 +96,7 @@ Build a **portfolio-quality game** that demonstrates:
 Phase 0: Documentation        [COMPLETE]    0 weeks   (done)
 Phase 1: Foundation           [COMPLETE]    2-3 weeks (done)
 Phase 2: Core Mechanics       [COMPLETE]    2-3 weeks (done)
-Phase 3: Content & Polish     [IN PROGRESS] 2-4 weeks (3.1, 3.3, 3.6 done)
+Phase 3: Content & Polish     [IN PROGRESS] 2-4 weeks (3.1, 3.3, 3.4, 3.6 done)
 Phase 4: Advanced Features    [OPTIONAL]    3-5 weeks
 Phase 5: Portfolio Showcase   [FINAL]       1-2 weeks
 ─────────────────────────────────────────────────────
@@ -172,8 +172,8 @@ Phase 5 (Showcase) → Portfolio presentation
 **Content & Polish**:
 - [x] Scene system (menu, game, level select, game over)
 - [x] Save/load system (localStorage, progress tracking, level locking)
-- [x] Additional levels (20 levels total)
-- [ ] Visual polish
+- [x] Additional levels (20 levels total, BFS verified)
+- [x] Visual polish (retro arcade cabinet design, 25% UI scale increase)
 - [ ] Tutorial system
 - [ ] Mobile support improvements
 - [ ] Performance optimization
@@ -693,18 +693,19 @@ Phase 5 (Showcase) → Portfolio presentation
 
 ---
 
-#### 3.4: Visual Polish (12-16 hours)
-- [ ] Better tile graphics (or clean geometric)
-- [ ] Particle effects (key pickup, door open, etc.)
-- [ ] Screen shake (on hazard hit)
-- [ ] Polish HUD design
-- [ ] Color scheme refinement
-- [ ] Consistent visual style
+#### 3.4: Visual Polish (12-16 hours) ✅ COMPLETE
+- [x] Retro arcade cabinet aesthetic (neon palette, CRT scanlines)
+- [x] Glow halos on player, goal, hazards, keys
+- [x] Segmented arcade-style health bar HUD
+- [x] Polish HUD design (TURN/STAGE formatting, neon divider)
+- [x] Neon color scheme (cyan, green, pink, orange, yellow)
+- [x] Consistent visual style across all scenes (menu, level select, game over)
+- [x] 25% UI scale increase (TILE_SIZE 48→60, all fonts/spacing scaled)
 
 **Acceptance criteria**:
-- Game looks professional
-- Visual style is cohesive
-- Effects enhance clarity (not distract)
+- Game looks professional ✅
+- Visual style is cohesive ✅
+- Effects enhance clarity (not distract) ✅
 
 ---
 

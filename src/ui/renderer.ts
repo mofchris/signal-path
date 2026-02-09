@@ -30,68 +30,68 @@ import { DIRECTION_VECTORS } from '../core/types';
  * Tile size in pixels.
  * All grid calculations are based on this value.
  */
-export const TILE_SIZE = 48;
+export const TILE_SIZE = 60;
 
 /**
  * HUD height in pixels.
  * Space reserved at the bottom for energy/turn display.
  */
-export const HUD_HEIGHT = 60;
+export const HUD_HEIGHT = 75;
 
 /**
  * Padding around the grid.
  */
-export const GRID_PADDING = 16;
+export const GRID_PADDING = 20;
 
 /**
  * Color palette for the game.
  * Designed for clarity and accessibility.
  */
 export const COLORS = {
-  // Background
-  background: '#1a1a2e',
+  // Background — pure black arcade screen
+  background: '#000000',
 
-  // Grid
-  tile: '#16213e',
-  tileOutline: '#0f3460',
-  wall: '#0a0a14',
+  // Grid — Tron wireframe floor
+  tile: '#0a0a18',
+  tileOutline: '#1a1a3a',
+  wall: '#1a1a2a',
 
-  // Goal
-  goal: '#4ade80',
-  goalGlow: 'rgba(74, 222, 128, 0.3)',
+  // Goal — neon green beacon
+  goal: '#00ff88',
+  goalGlow: 'rgba(0, 255, 136, 0.25)',
 
-  // Player
-  player: '#3b82f6',
-  playerOutline: '#1d4ed8',
+  // Player — electric cyan
+  player: '#00ccff',
+  playerOutline: '#0088cc',
 
-  // Hazards
-  hazardSpike: '#ef4444',
-  hazardLaser: '#f97316',
-  hazardFire: '#eab308',
-  hazardInactive: '#6b7280',
+  // Hazards — hot neon
+  hazardSpike: '#ff0055',
+  hazardLaser: '#ff4400',
+  hazardFire: '#ffdd00',
+  hazardInactive: '#333355',
 
-  // Interactables
-  keyRed: '#ef4444',
-  keyBlue: '#3b82f6',
-  keyGreen: '#22c55e',
-  keyYellow: '#eab308',
-  doorLocked: '#78716c',
-  doorUnlocked: '#a8a29e',
+  // Interactables — neon keys
+  keyRed: '#ff0055',
+  keyBlue: '#00ccff',
+  keyGreen: '#00ff88',
+  keyYellow: '#ffdd00',
+  doorLocked: '#555577',
+  doorUnlocked: '#8888aa',
 
   // Feedback
-  invalidMove: 'rgba(239, 68, 68, 0.6)',
-  validMoveHint: 'rgba(74, 222, 128, 0.2)',
+  invalidMove: 'rgba(255, 0, 85, 0.5)',
+  validMoveHint: 'rgba(0, 255, 136, 0.15)',
 
-  // HUD
-  hudBackground: '#0f0f1a',
-  hudText: '#e5e5e5',
-  hudEnergy: '#22c55e',
-  hudEnergyLow: '#ef4444',
-  hudTurn: '#a78bfa',
+  // HUD — arcade score style
+  hudBackground: '#000000',
+  hudText: '#ffffff',
+  hudEnergy: '#00ff88',
+  hudEnergyLow: '#ff0055',
+  hudTurn: '#00ccff',
 
-  // Game over
-  winOverlay: 'rgba(34, 197, 94, 0.9)',
-  loseOverlay: 'rgba(239, 68, 68, 0.9)',
+  // Game over — bold neon overlays
+  winOverlay: 'rgba(0, 255, 136, 0.9)',
+  loseOverlay: 'rgba(255, 0, 85, 0.9)',
   overlayText: '#ffffff',
 } as const;
 
@@ -286,24 +286,22 @@ function renderTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
 // ============================================================================
 
 /**
- * Render the goal tile with a glowing effect.
+ * Render the goal tile with arcade neon glow effect.
  */
 function renderGoal(ctx: CanvasRenderingContext2D, goal: Position): void {
   const screen = gridToScreen(goal);
   const centerX = screen.x + TILE_SIZE / 2;
   const centerY = screen.y + TILE_SIZE / 2;
 
-  // Draw glow
+  // Outer glow halo
   ctx.fillStyle = COLORS.goalGlow;
   ctx.beginPath();
-  ctx.arc(centerX, centerY, TILE_SIZE / 2, 0, Math.PI * 2);
+  ctx.arc(centerX, centerY, TILE_SIZE * 0.55, 0, Math.PI * 2);
   ctx.fill();
 
-  // Draw goal marker (flag/target shape)
-  ctx.fillStyle = COLORS.goal;
-
-  // Draw a diamond shape
+  // Draw neon diamond
   const size = TILE_SIZE * 0.35;
+  ctx.fillStyle = COLORS.goal;
   ctx.beginPath();
   ctx.moveTo(centerX, centerY - size);
   ctx.lineTo(centerX + size, centerY);
@@ -312,9 +310,14 @@ function renderGoal(ctx: CanvasRenderingContext2D, goal: Position): void {
   ctx.closePath();
   ctx.fill();
 
-  // Inner diamond
+  // Diamond outline for arcade crispness
+  ctx.strokeStyle = '#00ffaa';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Inner diamond cutout
   ctx.fillStyle = COLORS.tile;
-  const innerSize = size * 0.4;
+  const innerSize = size * 0.35;
   ctx.beginPath();
   ctx.moveTo(centerX, centerY - innerSize);
   ctx.lineTo(centerX + innerSize, centerY);
@@ -355,6 +358,7 @@ export function renderPlayerAt(
 
 /**
  * Internal function to render player at screen coordinates.
+ * Arcade style: bright cyan circle with outer glow ring.
  */
 function renderPlayerAtScreen(
   ctx: CanvasRenderingContext2D,
@@ -363,21 +367,27 @@ function renderPlayerAtScreen(
 ): void {
   const radius = TILE_SIZE * 0.35;
 
-  // Draw player circle
+  // Outer glow halo
+  ctx.fillStyle = 'rgba(0, 204, 255, 0.2)';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius + 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Main player circle
   ctx.fillStyle = COLORS.player;
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Draw outline
+  // Thick outline for arcade crispness
   ctx.strokeStyle = COLORS.playerOutline;
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Draw inner highlight
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  // Inner highlight — arcade specular
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
   ctx.beginPath();
-  ctx.arc(centerX - radius * 0.3, centerY - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+  ctx.arc(centerX - radius * 0.25, centerY - radius * 0.25, radius * 0.25, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -439,7 +449,7 @@ function renderHazard(ctx: CanvasRenderingContext2D, hazard: Hazard): void {
 }
 
 /**
- * Render a spike hazard (triangle).
+ * Render a spike hazard (bold neon triangle with glow).
  */
 function renderSpike(
   ctx: CanvasRenderingContext2D,
@@ -447,8 +457,15 @@ function renderSpike(
   centerY: number,
   color: string
 ): void {
-  const size = TILE_SIZE * 0.35;
+  const size = TILE_SIZE * 0.38;
 
+  // Glow halo
+  ctx.fillStyle = color + '30';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, TILE_SIZE * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Main triangle
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(centerX, centerY - size);
@@ -456,10 +473,15 @@ function renderSpike(
   ctx.lineTo(centerX - size, centerY + size * 0.7);
   ctx.closePath();
   ctx.fill();
+
+  // Bright outline
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
 /**
- * Render a laser hazard (horizontal beam).
+ * Render a laser hazard (thick neon beam with glow bars).
  */
 function renderLaser(
   ctx: CanvasRenderingContext2D,
@@ -467,19 +489,28 @@ function renderLaser(
   centerY: number,
   color: string
 ): void {
-  const width = TILE_SIZE * 0.7;
-  const height = TILE_SIZE * 0.15;
+  const width = TILE_SIZE * 0.8;
+  const height = TILE_SIZE * 0.18;
 
+  // Outer glow bars
+  ctx.fillStyle = color + '25';
+  ctx.fillRect(centerX - width / 2, centerY - height * 1.8, width, height * 3.6);
+
+  // Secondary glow
+  ctx.fillStyle = color + '50';
+  ctx.fillRect(centerX - width / 2, centerY - height, width, height * 2);
+
+  // Main beam — bright
   ctx.fillStyle = color;
   ctx.fillRect(centerX - width / 2, centerY - height / 2, width, height);
 
-  // Glow effect
-  ctx.fillStyle = color + '40'; // 25% opacity
-  ctx.fillRect(centerX - width / 2, centerY - height, width, height * 2);
+  // White-hot core
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.fillRect(centerX - width / 2, centerY - height * 0.2, width, height * 0.4);
 }
 
 /**
- * Render a fire hazard (flame shape).
+ * Render a fire hazard (angular arcade flame shapes).
  */
 function renderFire(
   ctx: CanvasRenderingContext2D,
@@ -487,30 +518,34 @@ function renderFire(
   centerY: number,
   color: string
 ): void {
-  const size = TILE_SIZE * 0.3;
+  const size = TILE_SIZE * 0.32;
 
-  // Draw three flame shapes
+  // Glow halo
+  ctx.fillStyle = color + '25';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, TILE_SIZE * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Center flame — angular chevron
   ctx.fillStyle = color;
-
-  // Center flame
   ctx.beginPath();
-  ctx.moveTo(centerX, centerY - size);
-  ctx.quadraticCurveTo(centerX + size * 0.5, centerY, centerX, centerY + size * 0.7);
-  ctx.quadraticCurveTo(centerX - size * 0.5, centerY, centerX, centerY - size);
+  ctx.moveTo(centerX, centerY - size * 1.1);
+  ctx.lineTo(centerX + size * 0.5, centerY + size * 0.2);
+  ctx.lineTo(centerX + size * 0.2, centerY + size * 0.6);
+  ctx.lineTo(centerX, centerY + size * 0.3);
+  ctx.lineTo(centerX - size * 0.2, centerY + size * 0.6);
+  ctx.lineTo(centerX - size * 0.5, centerY + size * 0.2);
+  ctx.closePath();
   ctx.fill();
 
-  // Left flame (smaller)
+  // Orange-red inner core
+  ctx.fillStyle = '#ff6600';
   ctx.beginPath();
-  ctx.moveTo(centerX - size * 0.5, centerY - size * 0.5);
-  ctx.quadraticCurveTo(centerX - size * 0.2, centerY, centerX - size * 0.5, centerY + size * 0.4);
-  ctx.quadraticCurveTo(centerX - size * 0.8, centerY, centerX - size * 0.5, centerY - size * 0.5);
-  ctx.fill();
-
-  // Right flame (smaller)
-  ctx.beginPath();
-  ctx.moveTo(centerX + size * 0.5, centerY - size * 0.5);
-  ctx.quadraticCurveTo(centerX + size * 0.8, centerY, centerX + size * 0.5, centerY + size * 0.4);
-  ctx.quadraticCurveTo(centerX + size * 0.2, centerY, centerX + size * 0.5, centerY - size * 0.5);
+  ctx.moveTo(centerX, centerY - size * 0.5);
+  ctx.lineTo(centerX + size * 0.25, centerY + size * 0.15);
+  ctx.lineTo(centerX, centerY + size * 0.35);
+  ctx.lineTo(centerX - size * 0.25, centerY + size * 0.15);
+  ctx.closePath();
   ctx.fill();
 }
 
@@ -570,7 +605,7 @@ function getKeyColor(color: string): string {
 }
 
 /**
- * Render a key.
+ * Render a key with neon glow — arcade style.
  */
 function renderKey(
   ctx: CanvasRenderingContext2D,
@@ -582,11 +617,20 @@ function renderKey(
   const centerY = screen.y + TILE_SIZE / 2;
   const keyColor = getKeyColor(color);
 
-  // Key head (circle)
+  // Glow halo
+  ctx.fillStyle = keyColor + '30';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, TILE_SIZE * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Key head (circle) with thick outline
   ctx.fillStyle = keyColor;
   ctx.beginPath();
-  ctx.arc(centerX, centerY - TILE_SIZE * 0.1, TILE_SIZE * 0.15, 0, Math.PI * 2);
+  ctx.arc(centerX, centerY - TILE_SIZE * 0.1, TILE_SIZE * 0.16, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
   // Key hole
   ctx.fillStyle = COLORS.tile;
@@ -594,17 +638,17 @@ function renderKey(
   ctx.arc(centerX, centerY - TILE_SIZE * 0.1, TILE_SIZE * 0.06, 0, Math.PI * 2);
   ctx.fill();
 
-  // Key shaft
+  // Key shaft — thicker
   ctx.fillStyle = keyColor;
-  ctx.fillRect(centerX - TILE_SIZE * 0.04, centerY, TILE_SIZE * 0.08, TILE_SIZE * 0.25);
+  ctx.fillRect(centerX - TILE_SIZE * 0.05, centerY, TILE_SIZE * 0.1, TILE_SIZE * 0.25);
 
-  // Key teeth
-  ctx.fillRect(centerX, centerY + TILE_SIZE * 0.1, TILE_SIZE * 0.1, TILE_SIZE * 0.05);
-  ctx.fillRect(centerX, centerY + TILE_SIZE * 0.2, TILE_SIZE * 0.08, TILE_SIZE * 0.05);
+  // Key teeth — chunkier
+  ctx.fillRect(centerX, centerY + TILE_SIZE * 0.08, TILE_SIZE * 0.12, TILE_SIZE * 0.06);
+  ctx.fillRect(centerX, centerY + TILE_SIZE * 0.19, TILE_SIZE * 0.1, TILE_SIZE * 0.06);
 }
 
 /**
- * Render a door.
+ * Render a door — neon-outlined rectangle with color stripe glow.
  */
 function renderDoor(
   ctx: CanvasRenderingContext2D,
@@ -615,7 +659,7 @@ function renderDoor(
   const screen = gridToScreen(position);
   const keyColor = getKeyColor(color);
 
-  // Door frame
+  // Door frame — dark fill
   ctx.fillStyle = locked ? COLORS.doorLocked : COLORS.doorUnlocked;
   ctx.fillRect(
     screen.x + TILE_SIZE * 0.1,
@@ -624,7 +668,27 @@ function renderDoor(
     TILE_SIZE * 0.9
   );
 
-  // Door color stripe
+  // Neon outline
+  ctx.strokeStyle = locked ? keyColor : COLORS.doorUnlocked;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(
+    screen.x + TILE_SIZE * 0.1,
+    screen.y + TILE_SIZE * 0.05,
+    TILE_SIZE * 0.8,
+    TILE_SIZE * 0.9
+  );
+
+  // Color stripe — glows when locked
+  if (locked) {
+    // Glow behind stripe
+    ctx.fillStyle = keyColor + '40';
+    ctx.fillRect(
+      screen.x + TILE_SIZE * 0.1,
+      screen.y + TILE_SIZE * 0.08,
+      TILE_SIZE * 0.8,
+      TILE_SIZE * 0.2
+    );
+  }
   ctx.fillStyle = keyColor;
   ctx.fillRect(
     screen.x + TILE_SIZE * 0.15,
@@ -635,28 +699,40 @@ function renderDoor(
 
   // Lock/handle
   if (locked) {
-    // Draw lock
-    ctx.fillStyle = '#fbbf24';
+    // Chunky lock body
+    ctx.fillStyle = keyColor;
     ctx.fillRect(
-      screen.x + TILE_SIZE * 0.4,
+      screen.x + TILE_SIZE * 0.38,
       screen.y + TILE_SIZE * 0.5,
-      TILE_SIZE * 0.2,
+      TILE_SIZE * 0.24,
       TILE_SIZE * 0.25
     );
+    // Lock shackle (arc above body)
+    ctx.strokeStyle = keyColor;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(
+      screen.x + TILE_SIZE * 0.5,
+      screen.y + TILE_SIZE * 0.5,
+      TILE_SIZE * 0.09,
+      Math.PI,
+      0
+    );
+    ctx.stroke();
     // Keyhole
     ctx.fillStyle = COLORS.tile;
     ctx.beginPath();
     ctx.arc(
       screen.x + TILE_SIZE * 0.5,
-      screen.y + TILE_SIZE * 0.58,
+      screen.y + TILE_SIZE * 0.6,
       TILE_SIZE * 0.04,
       0,
       Math.PI * 2
     );
     ctx.fill();
   } else {
-    // Draw handle
-    ctx.fillStyle = '#a8a29e';
+    // Handle — neon dot
+    ctx.fillStyle = COLORS.goal;
     ctx.beginPath();
     ctx.arc(
       screen.x + TILE_SIZE * 0.7,
@@ -674,7 +750,8 @@ function renderDoor(
 // ============================================================================
 
 /**
- * Render the heads-up display (energy, turns, status, inventory).
+ * Render the arcade-style heads-up display.
+ * Score-style layout with segmented energy bar.
  */
 function renderHUD(
   ctx: CanvasRenderingContext2D,
@@ -687,72 +764,92 @@ function renderHUD(
   ctx.fillStyle = COLORS.hudBackground;
   ctx.fillRect(0, hudY, canvasWidth, HUD_HEIGHT);
 
-  // Divider line
-  ctx.strokeStyle = COLORS.tileOutline;
+  // Neon divider line
+  ctx.strokeStyle = COLORS.hudTurn;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, hudY);
   ctx.lineTo(canvasWidth, hudY);
   ctx.stroke();
+  // Subtle glow under divider
+  ctx.strokeStyle = 'rgba(0, 204, 255, 0.3)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, hudY + 2);
+  ctx.lineTo(canvasWidth, hudY + 2);
+  ctx.stroke();
 
-  // Energy display
+  // Energy label
   const energyColor = state.energy <= 3 ? COLORS.hudEnergyLow : COLORS.hudEnergy;
   ctx.fillStyle = energyColor;
-  ctx.font = 'bold 14px monospace';
-  ctx.fillText(`ENERGY: ${state.energy}/${state.maxEnergy}`, GRID_PADDING, hudY + 20);
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText('ENERGY', GRID_PADDING, hudY + 22);
 
-  // Energy bar
-  const barWidth = 80;
-  const barHeight = 10;
+  // Segmented energy bar (arcade health bar style)
+  const segments = state.maxEnergy;
+  const segWidth = Math.min(10, Math.floor(125 / segments));
+  const segHeight = 12;
+  const segGap = 3;
   const barX = GRID_PADDING;
-  const barY = hudY + 28;
-  const energyPercent = Math.max(0, state.energy / state.maxEnergy);
+  const barY = hudY + 30;
 
-  // Bar background
-  ctx.fillStyle = '#333';
-  ctx.fillRect(barX, barY, barWidth, barHeight);
+  for (let i = 0; i < segments; i++) {
+    const sx = barX + i * (segWidth + segGap);
+    if (i < state.energy) {
+      ctx.fillStyle = energyColor;
+    } else {
+      ctx.fillStyle = '#1a1a2a';
+    }
+    ctx.fillRect(sx, barY, segWidth, segHeight);
+  }
 
-  // Bar fill
+  // Energy count
   ctx.fillStyle = energyColor;
-  ctx.fillRect(barX, barY, barWidth * energyPercent, barHeight);
-
-  // Bar outline
-  ctx.strokeStyle = COLORS.tileOutline;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(barX, barY, barWidth, barHeight);
+  ctx.font = 'bold 14px monospace';
+  const countX = barX + segments * (segWidth + segGap) + 8;
+  ctx.fillText(`${state.energy}/${state.maxEnergy}`, countX, barY + segHeight - 1);
 
   // Turn counter (right side)
   ctx.fillStyle = COLORS.hudTurn;
-  ctx.font = 'bold 14px monospace';
+  ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'right';
-  ctx.fillText(`TURN: ${state.turnCount}`, canvasWidth - GRID_PADDING, hudY + 20);
+  ctx.fillText(`TURN ${String(state.turnCount).padStart(3, '0')}`, canvasWidth - GRID_PADDING, hudY + 22);
 
   // Keys inventory (right side, below turn)
   const keys = state.player.inventory.keys;
   if (keys.length > 0) {
-    ctx.font = '12px monospace';
+    ctx.font = '14px monospace';
     ctx.fillStyle = COLORS.hudText;
-    ctx.fillText('KEYS:', canvasWidth - GRID_PADDING, hudY + 38);
+    ctx.fillText('KEYS', canvasWidth - GRID_PADDING, hudY + 44);
 
-    // Draw key icons
-    let keyX = canvasWidth - GRID_PADDING - 45;
+    let keyX = canvasWidth - GRID_PADDING - 50;
     for (const key of keys) {
       const keyColor = getKeyColor(key.color);
+      // Glow around key icon
+      ctx.fillStyle = keyColor + '40';
+      ctx.beginPath();
+      ctx.arc(keyX, hudY + 52, 10, 0, Math.PI * 2);
+      ctx.fill();
+      // Key dot
       ctx.fillStyle = keyColor;
       ctx.beginPath();
-      ctx.arc(keyX, hudY + 45, 6, 0, Math.PI * 2);
+      ctx.arc(keyX, hudY + 52, 6, 0, Math.PI * 2);
       ctx.fill();
-      keyX -= 16;
+      keyX -= 22;
     }
   }
 
   ctx.textAlign = 'left';
 
-  // Level ID (centered at bottom)
-  ctx.fillStyle = COLORS.hudText;
-  ctx.font = '12px monospace';
+  // Level ID — arcade "STAGE XX" style (centered at bottom)
+  ctx.fillStyle = '#555577';
+  ctx.font = '14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(state.levelId.replace(/_/g, ' ').toUpperCase(), canvasWidth / 2, hudY + 50);
+  const levelNum = state.levelId.match(/^(\d+)/);
+  const stageLabel = levelNum
+    ? `STAGE ${levelNum[1].padStart(2, '0')}`
+    : state.levelId.replace(/_/g, ' ').toUpperCase();
+  ctx.fillText(stageLabel, canvasWidth / 2, hudY + 62);
   ctx.textAlign = 'left';
 }
 
@@ -761,7 +858,8 @@ function renderHUD(
 // ============================================================================
 
 /**
- * Render the game over overlay with detailed information.
+ * Render the arcade-style game over overlay.
+ * "STAGE CLEAR" / "GAME OVER" with CRT scanline hint.
  */
 function renderGameOver(
   ctx: CanvasRenderingContext2D,
@@ -774,43 +872,56 @@ function renderGameOver(
   const centerX = canvasWidth / 2;
   const centerY = gridHeight / 2;
 
-  // Semi-transparent overlay
-  ctx.fillStyle = status === 'won' ? COLORS.winOverlay : COLORS.loseOverlay;
+  // Dark overlay base
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
   ctx.fillRect(0, 0, canvasWidth, gridHeight);
 
-  // Main message
-  ctx.fillStyle = COLORS.overlayText;
-  ctx.font = 'bold 32px monospace';
+  // Neon color strip at top
+  const accentColor = status === 'won' ? COLORS.goal : COLORS.hazardSpike;
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(0, centerY - 88, canvasWidth, 3);
+
+  // Main message — big arcade text
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 35px monospace';
   ctx.textAlign = 'center';
 
-  const message = status === 'won' ? 'LEVEL COMPLETE!' : 'MISSION FAILED';
-  ctx.fillText(message, centerX, centerY - 40);
+  const message = status === 'won' ? 'STAGE CLEAR' : 'GAME OVER';
+  ctx.fillText(message, centerX, centerY - 44);
 
-  // Stats (if state is provided)
+  // Stats
   if (state) {
-    ctx.font = '14px monospace';
+    ctx.fillStyle = COLORS.overlayText;
+    ctx.font = '18px monospace';
 
     if (status === 'won') {
-      ctx.fillText(`Turns: ${state.turnCount}`, centerX, centerY);
-      ctx.fillText(`Energy remaining: ${state.energy}`, centerX, centerY + 20);
+      ctx.fillText(`TURNS  ${String(state.turnCount).padStart(3, '0')}`, centerX, centerY + 6);
+      ctx.fillText(`ENERGY ${String(state.energy).padStart(3, '0')}`, centerX, centerY + 31);
     } else {
-      // Show lose reason
-      const reason = state.energy <= 0 ? 'Energy depleted' : 'Hazard contact';
-      ctx.fillText(`Reason: ${reason}`, centerX, centerY);
-      ctx.fillText(`Turns taken: ${state.turnCount}`, centerX, centerY + 20);
+      const reason = state.energy <= 0 ? 'ENERGY DEPLETED' : 'HAZARD CONTACT';
+      ctx.fillText(reason, centerX, centerY + 6);
+      ctx.fillText(`TURNS  ${String(state.turnCount).padStart(3, '0')}`, centerX, centerY + 31);
     }
   }
 
+  // Bottom neon strip
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(0, centerY + 50, canvasWidth, 3);
+
   // Instructions
-  ctx.font = 'bold 14px monospace';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillStyle = '#888899';
 
   if (status === 'won') {
-    ctx.fillText('Press N for next level', centerX, centerY + 55);
-    ctx.fillText('Press R to replay', centerX, centerY + 75);
+    ctx.fillText('[ N ] NEXT    [ R ] REPLAY', centerX, centerY + 81);
   } else {
-    ctx.fillText('Press R to restart', centerX, centerY + 55);
-    ctx.fillText('Press P for previous level', centerX, centerY + 75);
+    ctx.fillText('[ R ] RETRY   [ P ] PREV', centerX, centerY + 81);
+  }
+
+  // CRT scanline hint — faint horizontal lines over overlay
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+  for (let y = 0; y < gridHeight; y += 4) {
+    ctx.fillRect(0, y, canvasWidth, 2);
   }
 
   ctx.textAlign = 'left';
@@ -844,9 +955,9 @@ export function renderInvalidMoveFeedback(
   const screen = gridToScreen(targetPos);
 
   // Fade out effect
-  const alpha = 0.6 * (1 - progress);
+  const alpha = 0.5 * (1 - progress);
 
-  ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+  ctx.fillStyle = `rgba(255, 0, 85, ${alpha})`;
   ctx.fillRect(screen.x, screen.y, TILE_SIZE, TILE_SIZE);
 
   // Draw X mark
@@ -887,6 +998,6 @@ export function renderMoveHints(
     const screen = gridToScreen(targetPos);
 
     ctx.fillStyle = COLORS.validMoveHint;
-    ctx.fillRect(screen.x + 4, screen.y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+    ctx.fillRect(screen.x + 5, screen.y + 5, TILE_SIZE - 10, TILE_SIZE - 10);
   }
 }

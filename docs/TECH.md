@@ -1,9 +1,9 @@
 # Technical Design Document (TECH.md)
 ## Signal Path
 
-**Last updated**: 2025-01-22  
-**Document version**: 1.0  
-**Project phase**: Foundation
+**Last updated**: 2026-02-08
+**Document version**: 1.1
+**Project phase**: Phase 3 (Content & Polish)
 
 ---
 
@@ -1192,58 +1192,95 @@ class SceneManager {
 
 ## Rendering System
 
+### Visual Style: Retro Arcade Cabinet
+
+The game uses a **retro arcade cabinet aesthetic** inspired by 80s arcade games (Pac-Man, Tron, Galaga). Key visual principles:
+- Deep black background with vibrant neon entity colors
+- Glow halos around interactive entities (player, goal, hazards, keys)
+- Segmented health bar (arcade-style blocks instead of smooth fill)
+- CRT scanline overlay on menu/game-over screens
+- Tron-style wireframe grid lines
+
+### Rendering Constants
+
+```typescript
+export const TILE_SIZE = 60;      // Pixels per grid tile
+export const HUD_HEIGHT = 75;     // HUD bar height below grid
+export const GRID_PADDING = 20;   // Padding around the grid
+```
+
+Canvas size is computed dynamically: `(grid.width * TILE_SIZE + 2 * GRID_PADDING)` x `(grid.height * TILE_SIZE + HUD_HEIGHT + 2 * GRID_PADDING)`.
+
+### Color Palette (COLORS constant)
+
+```typescript
+const COLORS = {
+  background:    '#000000',   // Pure black arcade screen
+  tile:          '#0a0a18',   // Near-black with blue tint
+  tileOutline:   '#1a1a3a',   // Tron wireframe grid lines
+  wall:          '#1a1a2a',   // Dark indigo walls
+  goal:          '#00ff88',   // Neon green
+  goalGlow:      'rgba(0,255,136,0.25)',
+  player:        '#00ccff',   // Electric cyan
+  playerOutline: '#0088cc',
+  hazardSpike:   '#ff0055',   // Hot pink
+  hazardLaser:   '#ff4400',   // Neon orange-red
+  hazardFire:    '#ffdd00',   // Arcade yellow
+  hazardInactive:'#333355',
+  // ... keys match hazard colors, doors use steel blue-gray
+  hudText:       '#ffffff',
+  hudEnergy:     '#00ff88',
+  hudEnergyLow:  '#ff0055',
+  hudTurn:       '#00ccff',
+};
+```
+
 ### Rendering Pipeline
 
 ```typescript
 function render(ctx: CanvasRenderingContext2D, state: GameState): void {
   // 1. Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // 2. Render grid (bottom layer)
+
+  // 2. Render grid (bottom layer) — dark tiles with neon wireframe outlines
   renderGrid(ctx, state.grid);
-  
-  // 3. Render interactables
-  renderInteractables(ctx, state.interactables);
-  
-  // 4. Render hazards
-  renderHazards(ctx, state.hazards);
-  
-  // 5. Render goal
+
+  // 3. Render goal — neon green diamond with glow halo
   renderGoal(ctx, state.goal);
-  
-  // 6. Render player (top layer)
+
+  // 4. Render interactables — keys with glow, doors with lock icon
+  renderInteractables(ctx, state.interactables);
+
+  // 5. Render hazards — spike/laser/fire with glow halos
+  renderHazards(ctx, state.hazards);
+
+  // 6. Render player (top layer) — cyan circle with glow ring
   renderPlayer(ctx, state.player);
-  
-  // 7. Render HUD (overlay)
+
+  // 7. Render HUD — segmented energy bar, turn counter, key inventory
   renderHUD(ctx, state);
-  
-  // 8. Render win/lose screen (if applicable)
+
+  // 8. Render win/lose screen — arcade overlay with CRT scanlines
   if (state.status !== 'playing') {
     renderGameOver(ctx, state.status);
   }
 }
 ```
 
-### Camera/Viewport System
+### Coordinate Conversion
 
 ```typescript
-interface Camera {
-  x: number;                          // Camera position (world coordinates)
-  y: number;
-  zoom: number;                       // Zoom level (1.0 = normal)
-}
-
-function worldToScreen(worldPos: Position, camera: Camera): Position {
+function gridToScreen(gridX: number, gridY: number): { x: number; y: number } {
   return {
-    x: (worldPos.x - camera.x) * TILE_SIZE * camera.zoom,
-    y: (worldPos.y - camera.y) * TILE_SIZE * camera.zoom,
+    x: GRID_PADDING + gridX * TILE_SIZE,
+    y: GRID_PADDING + gridY * TILE_SIZE,
   };
 }
 
-function screenToWorld(screenPos: Position, camera: Camera): Position {
+function screenToGrid(screenX: number, screenY: number): { x: number; y: number } {
   return {
-    x: Math.floor(screenPos.x / (TILE_SIZE * camera.zoom) + camera.x),
-    y: Math.floor(screenPos.y / (TILE_SIZE * camera.zoom) + camera.y),
+    x: Math.floor((screenX - GRID_PADDING) / TILE_SIZE),
+    y: Math.floor((screenY - GRID_PADDING) / TILE_SIZE),
   };
 }
 ```

@@ -1,8 +1,8 @@
 # Architecture Decision Records (ADR)
 ## Signal Path
 
-**Last updated**: 2025-01-22  
-**Document version**: 1.0
+**Last updated**: 2026-02-08
+**Document version**: 1.1
 
 ---
 
@@ -59,6 +59,7 @@ This document records **all significant architectural and technical decisions** 
 ### Phase 3 Decisions
 23. [ADR-023: Scene System for UI State Management](#adr-023-scene-system-for-ui-state-management)
 24. [ADR-024: localStorage Save System with Progress-Only Persistence](#adr-024-localstorage-save-system-with-progress-only-persistence)
+25. [ADR-025: Retro Arcade Cabinet Visual Design](#adr-025-retro-arcade-cabinet-visual-design)
 
 ---
 
@@ -1646,6 +1647,80 @@ Use **localStorage** to persist **progress-only** data (level completions, best 
 
 ---
 
+## ADR-025: Retro Arcade Cabinet Visual Design
+
+**Status**: Accepted
+**Date**: 2026-02-08
+**Deciders**: Project lead
+**Tags**: ui, visual-design, rendering, polish
+
+### Context
+
+The game needed visual polish (Step 3.4) to look portfolio-ready. The existing rendering used simple shapes with muted colors — functional but generic. A cohesive visual identity was needed to make the game memorable and demonstrate frontend design skill.
+
+**Options**:
+1. **Retro arcade cabinet**: 80s arcade look (Pac-Man, Tron, Galaga) — neon colors, dark backgrounds, CRT scanlines
+2. **Minimalist geometric**: Clean lines, subtle palette, modern UI
+3. **Pixel art**: Sprite-based retro look with custom pixel art
+4. **Cyberpunk/sci-fi**: Futuristic theme matching the drone/facility narrative
+
+### Decision
+
+Adopt a **retro arcade cabinet aesthetic** with neon colors on pure black backgrounds, glow effects, segmented health bars, CRT scanline overlays, and Tron-style wireframe grids.
+
+**Key design choices**:
+- Pure black (#000000) background — arcade screen feel
+- Neon palette: cyan (#00ccff), green (#00ff88), pink (#ff0055), orange (#ff4400), yellow (#ffdd00)
+- Glow halos around interactive entities (player, goal, hazards, keys)
+- Segmented energy bar (arcade health blocks) instead of smooth fill
+- CRT scanline overlay on menu/game-over screens
+- "STAGE 01" / "TURN 003" arcade-style HUD formatting
+- COLORS constant as single source of truth for the entire palette
+- 25% UI scale increase (TILE_SIZE 48→60) for better readability
+
+### Alternatives Considered
+
+#### Minimalist geometric
+- **Pros**: Timeless, clean, easy to implement
+- **Cons**: Looks generic, doesn't stand out in portfolio, no personality
+- **Why rejected**: Too similar to default prototype look
+
+#### Pixel art
+- **Pros**: Strong retro feel, charming
+- **Cons**: Requires artist skills or asset creation, time-intensive
+- **Why rejected**: Scope — programmatic rendering is faster and demonstrates code skill
+
+#### Cyberpunk/sci-fi
+- **Pros**: Matches narrative (drone, facility), trendy
+- **Cons**: Harder to execute well with Canvas 2D, risk of looking cluttered
+- **Why rejected**: Arcade is simpler and equally effective
+
+### Consequences
+
+**Positive**:
+- Cohesive visual identity across all scenes (menu, game, level select, game over)
+- High contrast makes gameplay elements very readable
+- Glow effects add depth without complexity (just overlapping shapes with alpha)
+- Demonstrates frontend/UI design skill alongside engineering
+- "Hex + alpha" trick (`color + '30'`) keeps glow code simple
+- Scales well — all sizes derived from TILE_SIZE constant
+
+**Negative**:
+- Some hardcoded color values outside COLORS constant (minor)
+- CRT scanline overlay adds a small per-frame rendering cost (negligible)
+- Neon-on-black may not suit all preferences
+
+**Neutral**:
+- All changes confined to UI layer (core logic untouched)
+- 242 tests continue passing (rendering is visual-only)
+- Pattern is easy to theme-swap in the future
+
+### References
+- [TECH.md - Rendering System](TECH.md#rendering-system)
+- [ROADMAP.md - Phase 3](ROADMAP.md)
+
+---
+
 ## Decision Summary Table
 
 | ADR | Decision | Status | Impact |
@@ -1674,6 +1749,7 @@ Use **localStorage** to persist **progress-only** data (level completions, best 
 | 022 | Keyboard-First Controls | Accepted | Low |
 | 023 | Scene System for UI State Management | Accepted | High |
 | 024 | localStorage Save System with Progress-Only Persistence | Accepted | High |
+| 025 | Retro Arcade Cabinet Visual Design | Accepted | Medium |
 
 ---
 

@@ -12,10 +12,10 @@ import type { Scene, SceneContext } from './types';
 
 /** Grid layout constants */
 const COLS = 5;
-const CELL_WIDTH = 80;
-const CELL_HEIGHT = 80;
-const CELL_GAP = 12;
-const GRID_TOP = 100;
+const CELL_WIDTH = 100;
+const CELL_HEIGHT = 100;
+const CELL_GAP = 15;
+const GRID_TOP = 125;
 
 export class LevelSelectScene implements Scene {
   private context!: SceneContext;
@@ -34,8 +34,8 @@ export class LevelSelectScene implements Scene {
     const canvas = context.canvas;
     const rows = Math.ceil(context.levels.length / COLS);
     const gridWidth = COLS * (CELL_WIDTH + CELL_GAP) - CELL_GAP;
-    canvas.width = Math.max(480, gridWidth + 60);
-    canvas.height = GRID_TOP + rows * (CELL_HEIGHT + CELL_GAP) + 80;
+    canvas.width = Math.max(600, gridWidth + 75);
+    canvas.height = GRID_TOP + rows * (CELL_HEIGHT + CELL_GAP) + 100;
 
     this.renderScene();
   }
@@ -122,20 +122,24 @@ export class LevelSelectScene implements Scene {
     const levelIds = levels.map((l) => l.id);
     const completed = getCompletedCount(saveData);
 
-    // Background
+    // Background — black arcade screen
     ctx.fillStyle = COLORS.background;
     ctx.fillRect(0, 0, w, h);
 
-    // Title
+    // Title — arcade style
     ctx.textAlign = 'center';
-    ctx.fillStyle = COLORS.goal;
-    ctx.font = 'bold 24px monospace';
-    ctx.fillText('SELECT LEVEL', w / 2, 45);
+    ctx.fillStyle = COLORS.hudTurn;
+    ctx.font = 'bold 30px monospace';
+    ctx.fillText('SELECT STAGE', w / 2, 56);
 
-    // Subtitle with completion count
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '12px monospace';
-    ctx.fillText(`${completed}/${levels.length} completed`, w / 2, 68);
+    // Completion count
+    ctx.fillStyle = COLORS.goal;
+    ctx.font = '15px monospace';
+    ctx.fillText(`${completed}/${levels.length} CLEARED`, w / 2, 85);
+
+    // Neon accent line
+    ctx.fillStyle = COLORS.hudTurn;
+    ctx.fillRect(w / 2 - 125, 98, 250, 2);
 
     // Level grid
     const gridWidth = COLS * (CELL_WIDTH + CELL_GAP) - CELL_GAP;
@@ -154,10 +158,10 @@ export class LevelSelectScene implements Scene {
     }
 
     // Controls hint
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '12px monospace';
+    ctx.fillStyle = '#333355';
+    ctx.font = '14px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Arrows to navigate, Enter to play, Esc for menu', w / 2, h - 25);
+    ctx.fillText('ARROWS NAVIGATE   ENTER PLAY   ESC MENU', w / 2, h - 31);
 
     ctx.textAlign = 'left';
   }
@@ -173,55 +177,55 @@ export class LevelSelectScene implements Scene {
     completed: boolean,
   ): void {
     if (!unlocked) {
-      // Locked: dimmed background
-      ctx.fillStyle = 'rgba(30, 30, 40, 0.8)';
+      // Locked: dark cell
+      ctx.fillStyle = '#050510';
       ctx.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
-      ctx.strokeStyle = '#3a3a4a';
+      ctx.strokeStyle = '#1a1a2a';
       ctx.lineWidth = 1;
       ctx.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
       // Lock indicator
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#555';
-      ctx.font = 'bold 22px monospace';
-      ctx.fillText('?', x + CELL_WIDTH / 2, y + 35);
+      ctx.fillStyle = '#333355';
+      ctx.font = 'bold 28px monospace';
+      ctx.fillText('?', x + CELL_WIDTH / 2, y + 44);
 
-      ctx.font = '9px monospace';
-      ctx.fillStyle = '#555';
-      ctx.fillText('LOCKED', x + CELL_WIDTH / 2, y + CELL_HEIGHT - 10);
+      ctx.font = '11px monospace';
+      ctx.fillStyle = '#333355';
+      ctx.fillText('LOCKED', x + CELL_WIDTH / 2, y + CELL_HEIGHT - 12);
 
       ctx.textAlign = 'left';
       return;
     }
 
     // Cell background
-    ctx.fillStyle = selected ? 'rgba(74, 222, 128, 0.15)' : COLORS.tile;
+    ctx.fillStyle = selected ? 'rgba(0, 255, 136, 0.08)' : COLORS.tile;
     ctx.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
-    // Cell border
-    ctx.strokeStyle = selected ? COLORS.goal : COLORS.tileOutline;
+    // Neon cell border
+    ctx.strokeStyle = selected ? COLORS.goal : '#1a1a3a';
     ctx.lineWidth = selected ? 2 : 1;
     ctx.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
     // Level number
     ctx.textAlign = 'center';
     ctx.fillStyle = selected ? COLORS.goal : COLORS.hudText;
-    ctx.font = 'bold 22px monospace';
-    ctx.fillText(String(index + 1), x + CELL_WIDTH / 2, y + 35);
+    ctx.font = 'bold 28px monospace';
+    ctx.fillText(String(index + 1).padStart(2, '0'), x + CELL_WIDTH / 2, y + 44);
 
     // Level name (truncate if needed)
-    ctx.font = '9px monospace';
-    ctx.fillStyle = selected ? COLORS.goal : '#9ca3af';
-    const displayName = name.length > 10 ? name.slice(0, 9) + '...' : name;
-    ctx.fillText(displayName, x + CELL_WIDTH / 2, y + CELL_HEIGHT - 10);
+    ctx.font = '11px monospace';
+    ctx.fillStyle = selected ? COLORS.goal : '#555577';
+    const displayName = name.length > 12 ? name.slice(0, 11) + '...' : name;
+    ctx.fillText(displayName, x + CELL_WIDTH / 2, y + CELL_HEIGHT - 12);
 
-    // Completion badge (green checkmark in top-right corner)
+    // Completion badge — neon green dot
     if (completed) {
       ctx.fillStyle = COLORS.goal;
-      ctx.font = 'bold 14px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText('*', x + CELL_WIDTH - 6, y + 16);
+      ctx.beginPath();
+      ctx.arc(x + CELL_WIDTH - 12, y + 12, 5, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.textAlign = 'left';

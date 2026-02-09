@@ -1,6 +1,6 @@
 # Signal Path - Project Status
 
-**Last Updated**: 2026-02-07
+**Last Updated**: 2026-02-08
 **Current Phase**: Phase 3 - Content & Polish (IN PROGRESS)
 
 ---
@@ -1038,16 +1038,99 @@ npm run build      # ✅ Built successfully (33.74 kB)
 
 ---
 
+## ✅ Step 3.3: Additional Levels (11-20) - COMPLETE
+
+### What We Built
+
+**10 new levels** bringing total to 20, with progressive difficulty:
+
+| Level | Name | Size | Focus | Energy |
+|-------|------|------|-------|--------|
+| 11 | Crossroads | 7x7 | Multi-path decisions | 20 |
+| 12 | Key Maze | 8x6 | Key ordering puzzle | 30 |
+| 13 | Tight Squeeze | 6x6 | Very tight energy | 12 |
+| 14 | Hazard Alley | 8x5 | Dense hazard navigation | 16 |
+| 15 | Three Doors | 7x7 | 3 keys, 3 doors, routing | 28 |
+| 16 | Energy Crisis | 8x6 | Minimal energy budget | 14 |
+| 17 | The Labyrinth | 9x7 | Large maze, multiple paths | 30 |
+| 18 | Fire Walk | 7x7 | Fire hazard gauntlet | 22 |
+| 19 | Lockdown | 9x7 | Keys + doors + hazards | 35 |
+| 20 | Signal Lost | 10x8 | Final challenge, all mechanics | 40 |
+
+**BFS verification tool** validates all levels are solvable.
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+npm run test:ci    # ✅ 242/242 tests passing
+```
+
+---
+
+## ✅ Step 3.4: Visual Polish - COMPLETE
+
+### What We Built
+
+**Retro arcade cabinet aesthetic** applied across all rendering:
+
+**Color Palette (Neon Arcade)**:
+- Pure black background (#000000)
+- Neon green goal (#00ff88) with glow halo
+- Electric cyan player (#00ccff) with specular highlight
+- Hot pink spikes (#ff0055), neon orange lasers (#ff4400), arcade yellow fire (#ffdd00)
+- Tron-style wireframe grid lines (#1a1a3a)
+
+**Rendering Overhaul**:
+- Player: Cyan circle with outer glow ring and arcade highlight
+- Goal: Pulsing neon green diamond with glow bloom
+- Hazards: Bold shapes with glow halos (spike triangle, laser beam, chevron flame)
+- Keys: Thick white outlines, chunky teeth, color glow halos
+- Doors: Neon-outlined rectangles, color stripe glow, chunky lock icon with shackle arc
+
+**HUD Redesign**:
+- Segmented energy bar (arcade health blocks instead of smooth fill)
+- Neon cyan divider with glow effect
+- "TURN 003 / STAGE 01" arcade formatting
+- Glowing key inventory dots
+
+**Scene Screens**:
+- Menu: "SIGNAL PATH" neon title, `> START GAME <` selection style, CRT scanlines
+- Level Select: "SELECT STAGE" header, neon grid, completion dots, locked cells
+- Game Over: "STAGE CLEAR"/"GAME OVER" with neon accent lines, CRT scanlines
+
+**25% UI Scale Increase**:
+- TILE_SIZE: 48 → 60px
+- HUD_HEIGHT: 60 → 75px
+- GRID_PADDING: 16 → 20px
+- All fonts, canvas sizes, and spacing scaled proportionally
+
+### Files Modified
+- `src/ui/renderer.ts` — COLORS, all rendering functions, constants
+- `index.html` — Body, canvas border, controls styling
+- `src/ui/scenes/MenuScene.ts` — Full arcade redesign
+- `src/ui/scenes/LevelSelectScene.ts` — Full arcade redesign
+- `src/ui/scenes/GameOverScene.ts` — Full arcade redesign
+
+### Verification
+
+```bash
+npm run typecheck  # ✅ PASS
+npm run test:ci    # ✅ 242/242 tests passing
+```
+
+---
+
 ## 📊 Phase 3 Progress
 
-**Overall Progress**: 2 steps complete, more to go
+**Overall Progress**: 4 steps complete, more to go
 
 | Step | Description | Status |
 |------|-------------|--------|
 | 3.1 | Scene System | ✅ Complete |
 | 3.2 | Level Select Screen | ✅ Complete (via 3.1 + 3.6) |
-| 3.3 | Additional Levels | ⏳ Not started |
-| 3.4 | Visual Polish | ⏳ Not started |
+| 3.3 | Additional Levels (20 total) | ✅ Complete |
+| 3.4 | Visual Polish (Arcade Cabinet) | ✅ Complete |
 | 3.5 | Tutorial System | ⏳ Not started |
 | 3.6 | Save/Load System | ✅ Complete |
 | 3.7 | Mobile Support | ⏳ Not started |
@@ -1055,4 +1138,4 @@ npm run build      # ✅ Built successfully (33.74 kB)
 
 ---
 
-**Status**: Phase 3 in progress. Scene system and save/load system complete. 242 tests passing. Level select shows lock/unlock state, completion badges, and X/N completed count.
+**Status**: Phase 3 in progress. Scene system, additional levels (20 total), visual polish (retro arcade cabinet design + 25% scale increase), and save/load system complete. 242 tests passing.

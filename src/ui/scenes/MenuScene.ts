@@ -26,8 +26,8 @@ export class MenuScene implements Scene {
 
     // Size canvas for menu screen
     const canvas = context.canvas;
-    canvas.width = 480;
-    canvas.height = 400;
+    canvas.width = 600;
+    canvas.height = 500;
 
     this.renderMenu();
   }
@@ -103,56 +103,67 @@ export class MenuScene implements Scene {
     const w = canvas.width;
     const h = canvas.height;
 
-    // Background
+    // Background — pure black arcade screen
     ctx.fillStyle = COLORS.background;
     ctx.fillRect(0, 0, w, h);
 
-    // Title
+    // Top neon accent line
+    ctx.fillStyle = COLORS.player;
+    ctx.fillRect(w / 2 - 175, 69, 350, 2);
+
+    // Title — arcade neon
     ctx.textAlign = 'center';
     ctx.fillStyle = COLORS.goal;
-    ctx.font = 'bold 36px monospace';
-    ctx.fillText('SIGNAL PATH', w / 2, 100);
+    ctx.font = 'bold 45px monospace';
+    ctx.fillText('SIGNAL PATH', w / 2, 125);
 
     // Subtitle
-    ctx.fillStyle = COLORS.hudText;
-    ctx.font = '14px monospace';
-    ctx.fillText('A Turn-Based Tactical Puzzle', w / 2, 130);
+    ctx.fillStyle = COLORS.hudTurn;
+    ctx.font = '15px monospace';
+    ctx.fillText('A TURN-BASED TACTICAL PUZZLE', w / 2, 160);
 
-    // Decorative line
-    ctx.strokeStyle = COLORS.tileOutline;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(w / 2 - 100, 150);
-    ctx.lineTo(w / 2 + 100, 150);
-    ctx.stroke();
+    // Bottom neon accent line
+    ctx.fillStyle = COLORS.player;
+    ctx.fillRect(w / 2 - 175, 178, 350, 2);
 
     // Menu options
-    const startY = 200;
-    const spacing = 50;
+    const startY = 250;
+    const spacing = 62;
 
     for (let i = 0; i < MENU_OPTIONS.length; i++) {
       const y = startY + i * spacing;
       const isSelected = i === this.selectedIndex;
 
       if (isSelected) {
-        // Selection highlight
-        ctx.fillStyle = 'rgba(74, 222, 128, 0.15)';
-        ctx.fillRect(w / 2 - 120, y - 18, 240, 36);
+        // Neon selection box
+        ctx.fillStyle = 'rgba(0, 255, 136, 0.1)';
+        ctx.fillRect(w / 2 - 150, y - 22, 300, 44);
 
         ctx.strokeStyle = COLORS.goal;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(w / 2 - 120, y - 18, 240, 36);
-      }
+        ctx.lineWidth = 2;
+        ctx.strokeRect(w / 2 - 150, y - 22, 300, 44);
 
-      ctx.fillStyle = isSelected ? COLORS.goal : COLORS.hudText;
-      ctx.font = isSelected ? 'bold 18px monospace' : '18px monospace';
-      ctx.fillText(MENU_OPTIONS[i].label, w / 2, y + 6);
+        // Selection indicator
+        ctx.fillStyle = COLORS.goal;
+        ctx.font = 'bold 22px monospace';
+        ctx.fillText('> ' + MENU_OPTIONS[i].label.toUpperCase() + ' <', w / 2, y + 8);
+      } else {
+        ctx.fillStyle = '#555577';
+        ctx.font = '22px monospace';
+        ctx.fillText(MENU_OPTIONS[i].label.toUpperCase(), w / 2, y + 8);
+      }
     }
 
-    // Controls hint
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '12px monospace';
-    ctx.fillText('Arrow Keys to navigate, Enter to select', w / 2, h - 40);
+    // "PRESS START" vibe
+    ctx.fillStyle = '#333355';
+    ctx.font = '14px monospace';
+    ctx.fillText('PRESS ENTER TO SELECT', w / 2, h - 50);
+
+    // CRT scanline hint on menu
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    for (let y = 0; y < h; y += 4) {
+      ctx.fillRect(0, y, w, 2);
+    }
 
     ctx.textAlign = 'left';
   }

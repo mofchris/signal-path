@@ -32,8 +32,8 @@ export class GameOverScene implements Scene {
 
     // Size canvas
     const canvas = context.canvas;
-    canvas.width = 480;
-    canvas.height = 360;
+    canvas.width = 600;
+    canvas.height = 450;
 
     this.renderScene();
   }
@@ -92,59 +92,66 @@ export class GameOverScene implements Scene {
     const w = canvas.width;
     const h = canvas.height;
 
-    // Background
+    // Background — black arcade screen
     ctx.fillStyle = COLORS.background;
     ctx.fillRect(0, 0, w, h);
 
-    // Result banner
-    const bannerColor = this.status === 'won' ? COLORS.goal : COLORS.hazardSpike;
-    ctx.fillStyle = bannerColor;
-    ctx.font = 'bold 32px monospace';
+    const accentColor = this.status === 'won' ? COLORS.goal : COLORS.hazardSpike;
+
+    // Top neon accent line
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(w / 2 - 175, 56, 350, 2);
+
+    // Result banner — arcade style
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 35px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(
-      this.status === 'won' ? 'LEVEL COMPLETE!' : 'MISSION FAILED',
+      this.status === 'won' ? 'STAGE CLEAR' : 'GAME OVER',
       w / 2,
-      80
+      100
     );
+
+    // Bottom accent line
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(w / 2 - 175, 115, 350, 2);
 
     // Stats
     ctx.fillStyle = COLORS.hudText;
-    ctx.font = '16px monospace';
+    ctx.font = '18px monospace';
 
     if (this.status === 'won') {
-      ctx.fillText(`Turns: ${this.turnCount}`, w / 2, 130);
-      ctx.fillText(`Energy remaining: ${this.energyRemaining}`, w / 2, 155);
+      ctx.fillText(`TURNS  ${String(this.turnCount).padStart(3, '0')}`, w / 2, 162);
+      ctx.fillText(`ENERGY ${String(this.energyRemaining).padStart(3, '0')}`, w / 2, 194);
     } else {
-      const reason = this.energyRemaining <= 0 ? 'Energy depleted' : 'Hazard contact';
-      ctx.fillText(`Reason: ${reason}`, w / 2, 130);
-      ctx.fillText(`Turns taken: ${this.turnCount}`, w / 2, 155);
+      const reason = this.energyRemaining <= 0 ? 'ENERGY DEPLETED' : 'HAZARD CONTACT';
+      ctx.fillText(reason, w / 2, 162);
+      ctx.fillText(`TURNS  ${String(this.turnCount).padStart(3, '0')}`, w / 2, 194);
     }
 
-    // Divider
-    ctx.strokeStyle = COLORS.tileOutline;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(w / 2 - 80, 180);
-    ctx.lineTo(w / 2 + 80, 180);
-    ctx.stroke();
-
     // Options
-    ctx.font = 'bold 14px monospace';
+    ctx.font = 'bold 16px monospace';
     const options: string[] = [];
 
     if (this.status === 'won' && this.levelIndex < this.context.levels.length - 1) {
-      options.push('[N] Next Level');
+      options.push('[ N ]  NEXT STAGE');
     }
-    options.push('[R] Restart');
-    options.push('[L] Level Select');
-    options.push('[Esc] Menu');
+    options.push('[ R ]  RETRY');
+    options.push('[ L ]  STAGE SELECT');
+    options.push('[ ESC ]  MENU');
 
-    const optionStartY = 210;
-    const optionSpacing = 28;
+    const optionStartY = 250;
+    const optionSpacing = 35;
 
     for (let i = 0; i < options.length; i++) {
-      ctx.fillStyle = i === 0 ? COLORS.goal : COLORS.hudText;
+      ctx.fillStyle = i === 0 ? accentColor : '#555577';
       ctx.fillText(options[i], w / 2, optionStartY + i * optionSpacing);
+    }
+
+    // CRT scanline hint
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    for (let y = 0; y < h; y += 4) {
+      ctx.fillRect(0, y, w, 2);
     }
 
     ctx.textAlign = 'left';
